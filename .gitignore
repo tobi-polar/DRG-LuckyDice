@@ -1,0 +1,11 @@
+# Keep this repo to the mod's own files. Never commit the FSD-Template or extracted game files.
+FSD-Template*/
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+*.pak
+*.sln
+__pycache__/
