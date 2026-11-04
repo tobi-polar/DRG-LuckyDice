@@ -5,13 +5,14 @@ Hook signatures were read from the FSD-Template tag `v1.39.102179.0`. Nothing he
 Each item is marked:
 
 - **[header]**: the function or property exists in the template headers, but its behaviour is untested.
+- **[game]**: an asset or value read from the installed game's pak with FModel.
 - **[engine]**: a standard Unreal feature.
 - **[find]**: still has to be located in FModel or the editor.
 
 ## 1. Setup
 
 1. Install **Unreal Engine 4.27.2** from the Epic launcher. Put it on D:, as C: has only 26 GB free, and remove the optional components.
-2. Clone FSD-Template next to this repo, keep its folder name, and double-click `FSD.uproject`. The project must stay named `FSD`.
+2. Open `FSD.uproject` in `FSD-Template-1.39.102179.0`, next to this repo. The project must stay named `FSD`.
 3. If the project asks to rebuild modules and fails, install Visual Studio with "Desktop development with C++". It isn't installed on this PC, and the current README doesn't list it as required.
 4. Create `Content/LuckyDice/` in the project.
 5. Import `SourceAssets/dice.obj` as a static mesh and `SourceAssets/dice.png` as a texture. Build a material from the texture, adding a little emissive so the dice stands out.
@@ -28,15 +29,25 @@ Each item is marked:
 
 Don't put Child Actor Components on `InitCave`. The modding guide warns against it, so have it spawn the manager instead.
 
+**Stand-ins for game assets**
+
+To reference a game asset in the editor, create an empty asset with the same type, name and path. The game's real asset is used at runtime. Keep these folders in **Directories to never cook**, so your empty copies never ship and overwrite the real ones.
+
+| Stand-in path under `Content/` | Type |
+|---|---|
+| `GameElements/PawnStats/PST_MovementSpeed` | `PawnStat` |
+| `GameElements/PawnStats/PST_MovementSpeedEnvironmentalPenalty` | `PawnStat` |
+| `Enemies/Waves/WaveControllers/EWC_Generic` | Blueprint, parent `EnemyWaveController` |
+
 ## 3. Milestone 1: one dice, one event, solo
 
 **`InitCave`**
 - BeginPlay → `Is Server` → Branch → true: `Spawn Actor From Class (BP_DiceManager)`.
 
 **`BP_DiceManager` drops**
-1. BeginPlay: `GetFSDGameState` **[header]** → bind `OnEnemyKilledEvent` **[header]**.
-2. Check the delegate's parameters in the editor **[find]**. It needs to tell you which enemy died, for the drop location. If it doesn't, use `OnEnemyDied` on `EnemySpawnManager` **[header]**, which also needs a way to get that manager **[find]**.
-3. On a kill: stop if the cooldown is running or a dice already exists. Then roll the drop chance and spawn `BP_DicePickup` at the enemy.
+1. BeginPlay: `GetFSDGameState` **[header]** → bind `OnEnemyKilledEvent` **[header]**. It passes `enemyTags` and `killedEnemy`.
+2. If it doesn't fire on the host, use `GetFSDGameMode` → `EnemySpawnManager` → `OnEnemyDied`, which passes `enemy` **[header]**.
+3. On a kill: stop if the cooldown is running or a dice already exists. Then roll the drop chance and spawn `BP_DicePickup` at `killedEnemy`.
 
 Starting values, to tune by playing:
 
@@ -60,20 +71,39 @@ Starting values, to tune by playing:
 
 ## 4. Milestone 2: remaining events
 
-All event logic runs on the server. `PushActiveStatusEffect` and `Resupply` are authority-only, and running events only on the server keeps every player's result the same.
+All event logic runs on the server except rapid fire. `TryPushActiveStatusEffect` and `Resupply` are authority-only, and running events only on the server keeps every player's result the same.
 
 | Event | Who | How | Still to check |
 |---|---|---|---|
-| Nuke | All enemies | Get All Actors of the enemy base class, then apply lethal damage | Base class and damage call **[find]**. Exclude friendlies, and decide on bosses and lootbugs. |
+| Nuke | All enemies | `GetFSDGameMode` → `EnemySpawnManager.FindEnemiesByClass(Pawn, isSwarmer)`, once with each `isSwarmer` value → get each `HealthComponentBase` → `Kill(causer)` **[header]** | Whether the `Pawn` class matches every enemy. Decide on bosses and lootbugs. |
 | Full ammo | Team | `InventoryComponent.Resupply(1.0)` **[header]** | Whether throwables need `ResupplyGrenades` too **[header]** |
-| Speed boost | Team | `StatusEffectsComponent.PushActiveStatusEffect(STE_Dice_Speed, Owner)` **[header]** | The speed `UPawnStat` asset **[find]**. Whether `StatChange` is additive. |
-| Half speed | Team | The same call with `STE_Dice_Slow` | As above |
-| Rapid fire | Team | Unknown. There's no confirmed fire-rate stat yet. | **Highest risk [find]**. Fallback: repeated resupply as "infinite ammo". |
-| Wave spawns | Team | `EnemyWaveManager.TriggerWave(waveClass)` **[header]** | A suitable wave class and a way to get the manager **[find]** |
+| Speed boost | Team | `TryPushActiveStatusEffect(STE_Dice_Speed, player, manager)` **[header]** | How strong `StatChange` feels |
+| Half speed | Team | The same call with `STE_Dice_Slow` | Whether 0.5 gives half speed |
+| Rapid fire | Team | Multicast from the server. Each client raises `RateOfFire` on its own dwarf's `AmmoDrivenWeapon` items, then restores it. **[header]** | **Highest risk.** See below. |
+| Wave spawns | Team | `GetFSDGameMode` → `GetWaveManager` → `TriggerWave(EWC_Generic)` **[header] [game]** | Whether it spawns correctly in every mission type |
 | Random teleport | Picker | Set Actor Location with Teleport on, using the position history below **[engine]** | Client movement correction |
 | Swap positions | All alive | Save all positions first, then move each player to the next player's position, with Sweep off and Teleport on **[engine]** | As above. With 3 or 4 players, this rotates them in a loop. |
 
-Status effect stat changes use `StatChangeStatusEffectItem`, which has `Stat`, `StatChange` and `AffectedByResistances` **[header]**.
+**Status effects**
+
+Copy the setup from the game's own effects. Each is a `StatusEffect` child with one `StatChangeStatusEffectItem` in its `StatusEffects` array:
+
+| Our effect | Copied from | `Stat` | `StatChange` | Other settings |
+|---|---|---|---|---|
+| `STE_Dice_Speed` | `STE_ScoutSpeedBoost` **[game]** (uses 1.5, 2.5 s) | `PST_MovementSpeed` | Start at 1.0 | `Duration` 20, `RefreshDurationOnApplication` on |
+| `STE_Dice_Slow` | `STE_ElecticPlant_slowdown` **[game]** (uses 0.3) | `PST_MovementSpeedEnvironmentalPenalty` | Start at 0.5 | `Duration` 15, `RefreshDurationOnApplication` on |
+
+The game's values show which stats to use, but not exactly how they scale, so measure them in game. Armor perks or mods that reduce environmental penalties may weaken the slow.
+
+**Rapid fire**
+
+The `PST_` stats have no fire-rate entry, so a status effect won't do this. `AmmoDrivenWeapon` does have a `RateOfFire` property **[header]**, and firing appears to run on the player's own client, so the change likely has to happen there:
+
+1. The server multicasts the event to everyone. This relies on every player having the mod, through `RequiredByAll`.
+2. On each client, `GetLocalPlayerCharacter` **[header]** → `InventoryComponent.GetItem(category)` **[header]** for each weapon category → cast to `AmmoDrivenWeapon`.
+3. Save each weapon's `RateOfFire`, multiply it, then restore the saved value when the timer ends.
+
+Test this early, as the property might not change the real firing speed. Weapons that use their own fire logic, like `AutoCannon` with `MaxFireRate` **[header]**, may need separate handling. If it fails, use repeated `Resupply` as an "infinite ammo" event instead.
 
 **Rolling**
 - Keep an array of `{event, weight, enabled}` and pick by weighted random, as in the Survivor mod's `Roll()`.
@@ -94,8 +124,8 @@ Set an event's weight to 0 for the roll if:
 | Event | Blocked when |
 |---|---|
 | Swap positions | Fewer than 2 living players, or any dwarf is carrying something, until this is tested |
-| Teleport, swap, half speed | Extraction has started. The signal for this is **[find]**. |
-| Teleport, swap | The target is downed. Check how to detect this **[find]**. |
+| Teleport, swap, half speed | Extraction has started. `FSDGameState.OnCountdownStarted` **[header]** is the likely signal, so confirm it only fires for extraction. |
+| Teleport, swap | The target is downed. Start with `PlayerCharacter.IsAlive` **[header]**, and confirm what it returns for a downed dwarf. |
 | Teleport | There are no safe points yet |
 
 **Announcements**
@@ -121,7 +151,7 @@ Check these from the **client's** side, not just the host's:
 ## 6. Packaging
 
 1. In Project Settings, turn off **Use Pak File** and **Share Material Shader Code**.
-2. In **Directories to never cook**, remove any entry that blocks `LuckyDice`. Add `Character`, because the guide says cooking the dummied `BP_PlayerCharacter` crashes the game.
+2. In **Directories to never cook**, remove any entry that blocks `LuckyDice`. Add `Character`, because the guide says cooking the dummied `BP_PlayerCharacter` crashes the game. Also add `GameElements` and `Enemies`, which hold the stand-ins.
 3. Package for Windows (64-bit), or use the template's `DRGModdingAutomationScripts`.
 4. Copy the cooked `Content` **and** `AssetRegistry.bin` into the DRGPacker input folder, then drag it onto `_Repack.bat`.
 5. Rename the result `LuckyDice.pak` and place it at `FSD\Mods\LuckyDice\LuckyDice.pak`.
@@ -137,7 +167,7 @@ The guide warns that testing this way forces a sandbox save, so back up your sav
 
 ## Open questions
 
-- Is `v1.39.102179.0` the template for the game build installed here (Steam build 26107973)?
+- Does `v1.39.102179.0` still fully match the installed game (Steam build 26107973)? The assets above exist in the installed pak, but the C++ signatures come from the template. A mismatch would show up as a crash or a function doing nothing.
 - What do Verified, Approved and Sandbox mean for players' saves and progression? The mod.io guidance pages weren't readable, so check them before release.
 
 ## References
