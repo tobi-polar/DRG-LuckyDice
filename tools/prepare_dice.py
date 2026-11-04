@@ -1,10 +1,13 @@
 """Prepare the source dice FBX for Unreal. Run with Blender:
 
-blender --background --factory-startup --python prepare_dice.py -- <input.fbx> <output.fbx> [target_tris] [size_m] [preview_prefix] [texture.png]
+blender --background --factory-startup --python prepare_dice.py -- <input.fbx> <output.fbx> [target_tris] [size_cm] [preview_prefix] [texture.png]
 
 Removes empty meshes, welds split vertices, reduces the triangle count,
-centres the pivot, scales the largest side to size_m and exports an FBX with
+centres the pivot, scales the largest side to size_cm and exports an FBX with
 applied transforms. UVs are kept, so the source textures still fit.
+
+Vertices are stored in centimetres with a unit scale of 1, because Unreal's
+importer ignores the FBX unit scale by default. Check with check_fbx_scale.py.
 """
 import sys
 
@@ -61,7 +64,7 @@ def main():
     args = sys.argv[sys.argv.index("--") + 1:]
     src, dst = args[0], args[1]
     target = int(args[2]) if len(args) > 2 else 10000
-    size_m = float(args[3]) if len(args) > 3 else 0.3
+    size_cm = float(args[3]) if len(args) > 3 else 30.0
     prefix = args[4] if len(args) > 4 else None
     tex = args[5] if len(args) > 5 else None
 
@@ -100,23 +103,25 @@ def main():
 
     lo, hi = bounds(me)
     centre = (lo + hi) / 2
-    factor = size_m / max(hi - lo)
+    factor = size_cm / max(hi - lo)
     for v in me.vertices:
         v.co = (v.co - centre) * factor
     me.update()
 
     lo, hi = bounds(me)
-    print("RESULT size m", tuple(round(a, 4) for a in hi - lo), "centre", tuple(round(a, 5) for a in (lo + hi) / 2))
+    print("RESULT size cm", tuple(round(a, 3) for a in hi - lo), "centre", tuple(round(a, 5) for a in (lo + hi) / 2))
     print(f"RESULT materials {[m.name for m in me.materials]}, uv_layers {[u.name for u in me.uv_layers]}")
 
     if prefix and tex:
         render_previews(scene, obj, tex, prefix)
 
+    scene.unit_settings.scale_length = 0.01
     bpy.ops.export_scene.fbx(
         filepath=dst,
         use_selection=True,
         object_types={"MESH"},
-        apply_scale_options="FBX_SCALE_ALL",
+        apply_unit_scale=True,
+        apply_scale_options="FBX_SCALE_NONE",
         mesh_smooth_type="FACE",
         use_mesh_modifiers=True,
         add_leaf_bones=False,
