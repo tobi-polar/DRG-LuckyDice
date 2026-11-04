@@ -15,8 +15,10 @@ Each item is marked:
 2. Open `FSD.uproject` in `FSD-Template-1.39.102179.0`, next to this repo. The project must stay named `FSD`.
 3. If the project asks to rebuild modules and fails, install Visual Studio with "Desktop development with C++". It isn't installed on this PC, and the current README doesn't list it as required.
 4. Create `Content/LuckyDice/` in the project.
-5. Import `SourceAssets/dice.obj` as a static mesh and `SourceAssets/dice.png` as a texture. Build a material from the texture, adding a little emissive so the dice stands out.
-6. Check the dice's size and orientation in the viewport. The mesh is exported 30 units wide.
+5. Import `SourceAssets/dice.fbx` as a static mesh, plus `dice_BaseColor.png` and `dice_Normal.png`. Turn off material and texture creation in the FBX import dialog, then build `M_Dice` by hand.
+6. Set `dice_Normal`'s compression to **Normalmap**, and consider setting Maximum Texture Size to 1024 on both textures, since the dice is small on screen.
+7. In `M_Dice`, connect the base colour to Base Color, multiply it by about 0.3 into Emissive, and connect the normal map to Normal.
+8. Check the dice in the viewport. It should be about 30 units wide. If the pips look raised instead of sunken, turn on **Flip Green Channel** on `dice_Normal`.
 
 ## 2. Assets
 
