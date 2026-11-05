@@ -12,8 +12,10 @@ event, delete what it runs, paste this, and connect the event to the marked Bran
 
 Paste into the Event Graph of BP_DiceManager, which needs the Integer variables
 ForceEvent (default -1) and EventId, NukeTargets (Pawn array), RapidFireActive
-(Boolean), RapidFireWeapons (Ammo Driven Weapon array) and RapidFireCurves (Curve
-Float array). ForceEvent picks the event
+(Boolean), RapidFireWeapons (Ammo Driven Weapon array), RapidFireCurves (Curve Float
+array), RapidFireCannons (Auto Cannon array), RapidFireCannonRates (Float array) and
+RapidFireCryos (Cryospray Item array).
+ForceEvent picks the event
 for testing: 0 Max Ammo, 1 Speed Boost, 2 Nuke, 3 Rapid Fire. Any negative value
 rolls at random. Each event sits in its own comment box.
 
@@ -39,7 +41,12 @@ GAME_MODE = "/Script/FSD.FSDGameMode"
 SPAWN_MANAGER = "/Script/FSD.EnemySpawnManager"
 ITEM = "/Script/FSD.Item"
 CURVE = "/Script/Engine.CurveFloat"
+CANNON = "/Script/FSD.AutoCannon"
+CRYO = "/Script/FSD.CryosprayItem"
 TYPES = {
+    "cryo": ("object", f"Class'\"{CRYO}\"'", None), "cryos": ("object", f"Class'\"{CRYO}\"'", "Array"),
+    "cannon": ("object", f"Class'\"{CANNON}\"'", None), "cannons": ("object", f"Class'\"{CANNON}\"'", "Array"),
+    "floats": ("float", None, "Array"),
     "curve": ("object", f"Class'\"{CURVE}\"'", None), "curves": ("object", f"Class'\"{CURVE}\"'", "Array"),
     "item": ("object", f"Class'\"{ITEM}\"'", None),
     "pawn": ("object", f"Class'\"{PAWN}\"'", None), "pawns": ("object", f"Class'\"{PAWN}\"'", "Array"),
@@ -61,7 +68,7 @@ TYPES = {
     "weapon": ("object", f"Class'\"{WEAPON}\"'", None), "weapons": ("object", f"Class'\"{WEAPON}\"'", "Array"),
     "sentry": ("object", f"Class'\"{SENTRY}\"'", None), "sentries": ("object", f"Class'\"{SENTRY}\"'", "Array"),
 }
-OBJECTS = {"actor", "self", "state", "component", "inventory", "weapon", "sentry", "pawn", "health", "item"}
+OBJECTS = {"actor", "self", "state", "component", "inventory", "weapon", "sentry", "pawn", "health", "item", "cannon", "cryo"}
 MATH = "/Script/Engine.KismetMathLibrary"
 LIBRARY = "/Script/FSD.GameFunctionLibrary"
 STATUS = "/Script/FSD.StatusEffectsComponent"
@@ -411,6 +418,69 @@ def restore_heat_curve(x, y):
     ])
 
 
+def cannon_member(cls, name, x, y, prop):
+    return Node(name, cls, x, y, f"VariableReference=(MemberParent=Class'\"{CANNON}\"',MemberName=\"{prop}\")")
+
+
+def skip_cannon_ramp(x, y):
+    """Double each Thunderhead's top speed, which RateOfFire doesn't affect, and start it there so it needs no spin-up."""
+    all_actors("CannonFind", x, y, CANNON, "cannons")
+    var_set("CannonSave", x + 350, y, "RapidFireCannons", "cannons")
+    var_get("CannonRatesA", x + 650, y + 150, "RapidFireCannonRates", "floats")
+    Node("CannonRatesEmpty", "K2Node_CallArrayFunction", x + 650, y, "FunctionReference=(MemberParent=Class'\"/Script/Engine.KismetArrayLibrary\"',MemberName=\"Array_Clear\")") \
+        .pin("execute", "exec").pin("then", "exec", True).pin("TargetArray", "floats")
+    var_get("CannonList", x + 950, y + 200, "RapidFireCannons", "cannons")
+    loop("CannonLoop", x + 1200, y, f"Class'\"{CANNON}\"'", "cannons", "cannon")
+    cannon_member("K2Node_VariableGet", "CannonStart", x + 1550, y + 220, "StartingFireRate").pin("StartingFireRate", "float", True).pin("self", "cannon")
+    var_get("CannonRatesB", x + 1550, y + 330, "RapidFireCannonRates", "floats")
+    Node("CannonAdd", "K2Node_CallArrayFunction", x + 1550, y, "FunctionReference=(MemberParent=Class'\"/Script/Engine.KismetArrayLibrary\"',MemberName=\"Array_Add\")") \
+        .pin("execute", "exec").pin("then", "exec", True).pin("TargetArray", "floats").pin("NewItem", "float").pin("ReturnValue", "int", True)
+    scale_item("CannonTop", x + 1900, y, "CannonLoop.Array Element", "CannonAdd.then", CANNON, "MaxFireRate", "Multiply_FloatFloat", RAPID_MULTIPLIER)
+    cannon_member("K2Node_VariableGet", "CannonMax", x + 2250, y + 220, "MaxFireRate").pin("MaxFireRate", "float", True).pin("self", "cannon")
+    cannon_member("K2Node_VariableSet", "CannonSet", x + 2250, y, "StartingFireRate").pin("execute", "exec").pin("then", "exec", True) \
+        .pin("StartingFireRate", "float").pin("self", "cannon")
+    wire_up([
+        "CannonFind.then>CannonSave.execute", "CannonFind.OutActors>CannonSave.RapidFireCannons", "CannonSave.then>CannonRatesEmpty.execute",
+        "CannonRatesA.RapidFireCannonRates>CannonRatesEmpty.TargetArray", "CannonRatesEmpty.then>CannonLoop.Exec", "CannonList.RapidFireCannons>CannonLoop.Array",
+        "CannonLoop.LoopBody>CannonAdd.execute", "CannonLoop.Array Element>CannonStart.self", "CannonStart.StartingFireRate>CannonAdd.NewItem",
+        "CannonRatesB.RapidFireCannonRates>CannonAdd.TargetArray", "CannonTopSet.then>CannonSet.execute", "CannonLoop.Array Element>CannonMax.self",
+        "CannonMax.MaxFireRate>CannonSet.StartingFireRate", "CannonLoop.Array Element>CannonSet.self",
+    ])
+
+
+def restore_cannon_ramp(x, y):
+    """Give each Thunderhead its saved starting fire rate and normal top speed back. Both saved lists were filled in the same order."""
+    var_get("RestoreCannonList", x, y + 200, "RapidFireCannons", "cannons")
+    loop("RestoreCannonLoop", x + 300, y, f"Class'\"{CANNON}\"'", "cannons", "cannon").pin("Array Index", "int", True)
+    var_get("RestoreRates", x + 450, y + 330, "RapidFireCannonRates", "floats")
+    Node("RestoreRate", "K2Node_GetArrayItem", x + 650, y + 220).pin("Array", "floats").pin("Dimension 1", "int").pin("Output", "float", True)
+    cannon_member("K2Node_VariableSet", "RestoreCannonSet", x + 650, y, "StartingFireRate").pin("execute", "exec").pin("then", "exec", True) \
+        .pin("StartingFireRate", "float").pin("self", "cannon")
+    wire_up([
+        "RestoreCannonList.RapidFireCannons>RestoreCannonLoop.Array", "RestoreCannonLoop.LoopBody>RestoreCannonSet.execute",
+        "RestoreCannonLoop.Array Element>RestoreCannonSet.self", "RestoreRates.RapidFireCannonRates>RestoreRate.Array",
+        "RestoreCannonLoop.Array Index>RestoreRate.Dimension 1", "RestoreRate.Output>RestoreCannonSet.StartingFireRate",
+    ])
+    scale_item("RestoreTop", x + 1000, y, "RestoreCannonLoop.Array Element", "RestoreCannonSet.then", CANNON, "MaxFireRate", "Divide_FloatFloat", RAPID_MULTIPLIER)
+
+
+def hold_cryo_pressure(x, y):
+    """The Cryo Cannon cuts out on low pressure rather than heat, so make its pressure drop almost nothing."""
+    all_actors("CryoFind", x, y, CRYO, "cryos")
+    var_set("CryoSave", x + 350, y, "RapidFireCryos", "cryos")
+    var_get("CryoList", x + 650, y + 200, "RapidFireCryos", "cryos")
+    loop("CryoLoop", x + 900, y, f"Class'\"{CRYO}\"'", "cryos", "cryo")
+    scale_item("CryoDrop", x + 1250, y, "CryoLoop.Array Element", "CryoLoop.LoopBody", CRYO, "PressureDropMultiplier", "Multiply_FloatFloat", NO_HEAT_SCALE)
+    wire_up(["CryoFind.then>CryoSave.execute", "CryoFind.OutActors>CryoSave.RapidFireCryos", "CryoSave.then>CryoLoop.Exec", "CryoList.RapidFireCryos>CryoLoop.Array"])
+
+
+def restore_cryo_pressure(x, y):
+    var_get("RestoreCryoList", x, y + 200, "RapidFireCryos", "cryos")
+    loop("RestoreCryoLoop", x + 300, y, f"Class'\"{CRYO}\"'", "cryos", "cryo")
+    scale_item("RestoreCryo", x + 650, y, "RestoreCryoLoop.Array Element", "RestoreCryoLoop.LoopBody", CRYO, "PressureDropMultiplier", "Divide_FloatFloat", NO_HEAT_SCALE)
+    wire_up(["RestoreCryoList.RapidFireCryos>RestoreCryoLoop.Array"])
+
+
 def rate_pass(prefix, x, y, operation, value):
     """Change the fire rate of every weapon in the saved list."""
     var_get(f"{prefix}List", x, y + 200, "RapidFireWeapons", "weapons")
@@ -438,6 +508,21 @@ def build_cooling(y):
     Node("CoolOverheated", "K2Node_VariableSet", 2600, y, f"VariableReference=(MemberParent=Class'\"{ITEM}\"',MemberName=\"overheated\")") \
         .pin("execute", "exec").pin("then", "exec", True).pin("overheated", "bool", False, "false").pin("self", "item")
     call("CoolWait", 2250, y + 250, "Delay", SYSTEM).pin("execute", "exec").pin("then", "exec", True).pin("Duration", "float", False, COOLING_SECONDS)
+
+    # Top up from reserves at half a magazine, early enough that no weapon runs dry and starts its reload animation.
+    Node("ClipCount", "K2Node_VariableGet", 2600, y + 220, f"VariableReference=(MemberParent=Class'\"{WEAPON}\"',MemberName=\"ClipCount\")") \
+        .pin("ClipCount", "int", True).pin("self", "weapon")
+    call("ClipDouble", 2800, y + 220, "Multiply_IntInt", MATH).pin("A", "int").pin("B", "int", False, "2").pin("ReturnValue", "int", True)
+    Node("ClipSize", "K2Node_VariableGet", 2800, y + 340, f"VariableReference=(MemberParent=Class'\"{WEAPON}\"',MemberName=\"ClipSize\")") \
+        .pin("ClipSize", "int", True).pin("self", "weapon")
+    call("ClipLow", 3000, y + 220, "LessEqual_IntInt", MATH).pin("A", "int").pin("B", "int").pin("ReturnValue", "bool", True)
+    branch("ClipCheck", 2950, y)
+    call("ClipReload", 3250, y, "InstantlyReload", WEAPON).pin("execute", "exec").pin("then", "exec", True).pin("self", "weapon")
+    wire_up([
+        "CoolOverheated.then>ClipCheck.execute", "CoolLoop.Array Element>ClipCount.self", "ClipCount.ClipCount>ClipDouble.A",
+        "ClipDouble.ReturnValue>ClipLow.A", "CoolLoop.Array Element>ClipSize.self", "ClipSize.ClipSize>ClipLow.B",
+        "ClipLow.ReturnValue>ClipCheck.Condition", "ClipCheck.then>ClipReload.execute", "CoolLoop.Array Element>ClipReload.self",
+    ])
     wire_up([
         "CoolActive.RapidFireActive>CoolCheck.Condition", "CoolCheck.then>CoolLoop.Exec", "CoolList.RapidFireWeapons>CoolLoop.Array",
         "CoolLoop.LoopBody>CoolTemperature.execute", "CoolLoop.Array Element>CoolTemperature.self", "CoolTemperature.then>CoolOverheated.execute",
@@ -466,16 +551,20 @@ def build_rapid_chain(y):
     restore_heat_curve(7850, y)
     var_set("RapidOff", 8200, y, "RapidFireActive", "bool", "false")
     clear_saved_curves(1000, y + 450)
+    skip_cannon_ramp(1600, y + 850)
+    restore_cannon_ramp(5250, y + 850)
+    hold_cryo_pressure(1600, y + 1300)
+    restore_cryo_pressure(5250, y + 1300)
     wire_up([
         "RapidActive.RapidFireActive>RapidGuard.Condition", "RapidGuard.else>RapidOn.execute",
         "RapidOn.then>RapidWeapons.execute", "RapidWeapons.then>RapidSave.execute", "RapidWeapons.OutActors>RapidSave.RapidFireWeapons",
-        "RapidSave.then>CurvesEmpty.execute", "CurvesEmpty.then>RapidSequence.execute", "RapidSequence.then_0>FasterLoop.Exec", "FasterLoop.Completed>RapidWait.execute", "RapidWait.then>RestoreLoop.Exec",
-        "RestoreLoop.Completed>RapidOff.execute",
+        "RapidSave.then>CurvesEmpty.execute", "CurvesEmpty.then>RapidSequence.execute", "RapidSequence.then_0>FasterLoop.Exec", "FasterLoop.Completed>CannonFind.execute", "CannonLoop.Completed>CryoFind.execute", "CryoLoop.Completed>RapidWait.execute", "RapidWait.then>RestoreLoop.Exec",
+        "RestoreLoop.Completed>RestoreCannonLoop.Exec", "RestoreCannonLoop.Completed>RestoreCryoLoop.Exec", "RestoreCryoLoop.Completed>RapidOff.execute",
     ])
 
 
 def build_rapid_event(y):
-    box("BoxRapidEvent", "Rapid Fire: change fire rate on every machine", -50, y - 80, 8600, 960, (0.6, 0.45, 0.05))
+    box("BoxRapidEvent", "Rapid Fire: change fire rate on every machine", -50, y - 80, 8600, 1850, (0.6, 0.45, 0.05))
     Node("RapidEvent", "K2Node_CustomEvent", 0, y, 'CustomFunctionName="DiceRapidFire"\n   FunctionFlags=16576') \
         .pin("OutputDelegate", "delegate", True).pin("then", "exec", True)
     build_rapid_chain(y)
