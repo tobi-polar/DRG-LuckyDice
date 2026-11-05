@@ -13,8 +13,10 @@ event, delete what it runs, paste this, and connect the event to the marked Bran
 Paste into the Event Graph of BP_DiceManager, which needs the Integer variables
 ForceEvent (default -1) and EventId, NukeTargets (Pawn array), RapidFireActive
 (Boolean), RapidFireWeapons (Ammo Driven Weapon array), RapidFireCurves (Curve Float
-array), RapidFireCannons (Auto Cannon array), RapidFireCannonRates (Float array) and
-RapidFireCryos (Cryospray Item array).
+array), RapidFireCannons (Auto Cannon array), RapidFireCannonRates (Float array),
+RapidFireCryos (Cryospray Item array), RapidFireDrills (Double Drill Item array),
+RapidFireDrillCurves (Curve Float array) and NoHeatCurve (Curve Float), whose default
+must be set to the flat CF_Dice_NoHeat asset.
 ForceEvent picks the event
 for testing: 0 Max Ammo, 1 Speed Boost, 2 Nuke, 3 Rapid Fire. Any negative value
 rolls at random. Each event sits in its own comment box.
@@ -43,7 +45,9 @@ ITEM = "/Script/FSD.Item"
 CURVE = "/Script/Engine.CurveFloat"
 CANNON = "/Script/FSD.AutoCannon"
 CRYO = "/Script/FSD.CryosprayItem"
+DRILL = "/Script/FSD.DoubleDrillItem"
 TYPES = {
+    "drill": ("object", f"Class'\"{DRILL}\"'", None), "drills": ("object", f"Class'\"{DRILL}\"'", "Array"),
     "cryo": ("object", f"Class'\"{CRYO}\"'", None), "cryos": ("object", f"Class'\"{CRYO}\"'", "Array"),
     "cannon": ("object", f"Class'\"{CANNON}\"'", None), "cannons": ("object", f"Class'\"{CANNON}\"'", "Array"),
     "floats": ("float", None, "Array"),
@@ -68,7 +72,7 @@ TYPES = {
     "weapon": ("object", f"Class'\"{WEAPON}\"'", None), "weapons": ("object", f"Class'\"{WEAPON}\"'", "Array"),
     "sentry": ("object", f"Class'\"{SENTRY}\"'", None), "sentries": ("object", f"Class'\"{SENTRY}\"'", "Array"),
 }
-OBJECTS = {"actor", "self", "state", "component", "inventory", "weapon", "sentry", "pawn", "health", "item", "cannon", "cryo"}
+OBJECTS = {"actor", "self", "state", "component", "inventory", "weapon", "sentry", "pawn", "health", "item", "cannon", "cryo", "drill"}
 MATH = "/Script/Engine.KismetMathLibrary"
 LIBRARY = "/Script/FSD.GameFunctionLibrary"
 STATUS = "/Script/FSD.StatusEffectsComponent"
@@ -395,14 +399,16 @@ def clear_saved_curves(x, y):
 
 
 def clear_heat_curve(x, y):
-    """Save each weapon's heat curve, then remove it. With no curve, held-fire weapons like the minigun don't heat up."""
+    """Save each weapon's heat curve, then swap in a flat one so held-fire weapons like the minigun don't heat up.
+    Leaving the curve empty also stops the heat, but crashes the game when drills hit an enemy."""
+    var_get("NoHeatGuns", x + 150, y + 220, "NoHeatCurve", "curve")
     curve_member("K2Node_VariableGet", "CurveRead", x, y + 220).pin("HeatCurve", "curve", True).pin("self", "item")
     var_get("CurveSaved", x + 100, y + 330, "RapidFireCurves", "curves")
     Node("CurveAdd", "K2Node_CallArrayFunction", x, y, "FunctionReference=(MemberParent=Class'\"/Script/Engine.KismetArrayLibrary\"',MemberName=\"Array_Add\")") \
         .pin("execute", "exec").pin("then", "exec", True).pin("TargetArray", "curves").pin("NewItem", "curve").pin("ReturnValue", "int", True)
     curve_member("K2Node_VariableSet", "CurveClear", x + 350, y).pin("execute", "exec").pin("then", "exec", True).pin("HeatCurve", "curve").pin("self", "item")
     wire_up([
-        "FasterCoolSet.then>CurveAdd.execute", "FasterLoop.Array Element>CurveRead.self", "CurveRead.HeatCurve>CurveAdd.NewItem",
+        "NoHeatGuns.NoHeatCurve>CurveClear.HeatCurve", "FasterCoolSet.then>CurveAdd.execute", "FasterLoop.Array Element>CurveRead.self", "CurveRead.HeatCurve>CurveAdd.NewItem",
         "CurveSaved.RapidFireCurves>CurveAdd.TargetArray", "CurveAdd.then>CurveClear.execute", "FasterLoop.Array Element>CurveClear.self",
     ])
 
@@ -481,6 +487,66 @@ def restore_cryo_pressure(x, y):
     wire_up(["RestoreCryoList.RapidFireCryos>RestoreCryoLoop.Array"])
 
 
+def skip_drill_heat(x, y):
+    """Drills aren't Ammo Driven Weapons, so they get their own list. Same heat changes, saving each drill's curve first."""
+    all_actors("DrillFind", x, y, DRILL, "drills")
+    var_set("DrillSave", x + 350, y, "RapidFireDrills", "drills")
+    var_get("DrillCurvesA", x + 650, y + 150, "RapidFireDrillCurves", "curves")
+    Node("DrillCurvesEmpty", "K2Node_CallArrayFunction", x + 650, y, "FunctionReference=(MemberParent=Class'\"/Script/Engine.KismetArrayLibrary\"',MemberName=\"Array_Clear\")") \
+        .pin("execute", "exec").pin("then", "exec", True).pin("TargetArray", "curves")
+    var_get("DrillList", x + 950, y + 200, "RapidFireDrills", "drills")
+    loop("DrillLoop", x + 1200, y, f"Class'\"{DRILL}\"'", "drills", "drill")
+    curve_member("K2Node_VariableGet", "DrillCurveRead", x + 1550, y + 220).pin("HeatCurve", "curve", True).pin("self", "item")
+    var_get("DrillCurvesB", x + 1550, y + 330, "RapidFireDrillCurves", "curves")
+    Node("DrillCurveAdd", "K2Node_CallArrayFunction", x + 1550, y, "FunctionReference=(MemberParent=Class'\"/Script/Engine.KismetArrayLibrary\"',MemberName=\"Array_Add\")") \
+        .pin("execute", "exec").pin("then", "exec", True).pin("TargetArray", "curves").pin("NewItem", "curve").pin("ReturnValue", "int", True)
+    curve_member("K2Node_VariableSet", "DrillCurveClear", x + 1900, y).pin("execute", "exec").pin("then", "exec", True).pin("HeatCurve", "curve").pin("self", "item")
+    var_get("NoHeatDrills", x + 1900, y + 220, "NoHeatCurve", "curve")
+    wire_up([
+        "NoHeatDrills.NoHeatCurve>DrillCurveClear.HeatCurve",
+        "DrillFind.then>DrillSave.execute", "DrillFind.OutActors>DrillSave.RapidFireDrills", "DrillSave.then>DrillCurvesEmpty.execute",
+        "DrillCurvesA.RapidFireDrillCurves>DrillCurvesEmpty.TargetArray", "DrillCurvesEmpty.then>DrillLoop.Exec", "DrillList.RapidFireDrills>DrillLoop.Array",
+        "DrillLoop.LoopBody>DrillCurveAdd.execute", "DrillLoop.Array Element>DrillCurveRead.self", "DrillCurveRead.HeatCurve>DrillCurveAdd.NewItem",
+        "DrillCurvesB.RapidFireDrillCurves>DrillCurveAdd.TargetArray", "DrillCurveAdd.then>DrillCurveClear.execute", "DrillLoop.Array Element>DrillCurveClear.self",
+    ])
+    element = "DrillLoop.Array Element"
+    scale_item("DrillHeat", x + 2250, y, element, "DrillCurveClear.then", ITEM, "ManualHeatPerUse", "Multiply_FloatFloat", NO_HEAT_SCALE)
+    scale_item("DrillStart", x + 2600, y, element, "DrillHeatSet.then", ITEM, "HeatOnStartUse", "Multiply_FloatFloat", NO_HEAT_SCALE)
+    scale_item("DrillCool", x + 2950, y, element, "DrillStartSet.then", ITEM, "CooldownRate", "Multiply_FloatFloat", FAST_COOLING_SCALE)
+
+
+def restore_drill_heat(x, y):
+    """Give each drill its saved curve and normal heat settings back. Both saved lists were filled in the same order."""
+    var_get("RestoreDrillList", x, y + 200, "RapidFireDrills", "drills")
+    loop("RestoreDrillLoop", x + 300, y, f"Class'\"{DRILL}\"'", "drills", "drill").pin("Array Index", "int", True)
+    var_get("RestoreDrillCurves", x + 450, y + 330, "RapidFireDrillCurves", "curves")
+    Node("RestoreDrillItem", "K2Node_GetArrayItem", x + 650, y + 220).pin("Array", "curves").pin("Dimension 1", "int").pin("Output", "curve", True)
+    curve_member("K2Node_VariableSet", "RestoreDrillCurve", x + 650, y).pin("execute", "exec").pin("then", "exec", True).pin("HeatCurve", "curve").pin("self", "item")
+    element = "RestoreDrillLoop.Array Element"
+    wire_up([
+        "RestoreDrillList.RapidFireDrills>RestoreDrillLoop.Array", "RestoreDrillLoop.LoopBody>RestoreDrillCurve.execute", f"{element}>RestoreDrillCurve.self",
+        "RestoreDrillCurves.RapidFireDrillCurves>RestoreDrillItem.Array", "RestoreDrillLoop.Array Index>RestoreDrillItem.Dimension 1",
+        "RestoreDrillItem.Output>RestoreDrillCurve.HeatCurve",
+    ])
+    scale_item("RestoreDrillHeat", x + 1000, y, element, "RestoreDrillCurve.then", ITEM, "ManualHeatPerUse", "Divide_FloatFloat", NO_HEAT_SCALE)
+    scale_item("RestoreDrillStart", x + 1350, y, element, "RestoreDrillHeatSet.then", ITEM, "HeatOnStartUse", "Divide_FloatFloat", NO_HEAT_SCALE)
+    scale_item("RestoreDrillCool", x + 1700, y, element, "RestoreDrillStartSet.then", ITEM, "CooldownRate", "Divide_FloatFloat", FAST_COOLING_SCALE)
+
+
+def cool_drills(y):
+    """The drills' part of the 0.1 s heat check."""
+    var_get("DrillTickList", 3700, y + 200, "RapidFireDrills", "drills")
+    loop("DrillTickLoop", 3950, y, f"Class'\"{DRILL}\"'", "drills", "drill")
+    Node("DrillTickTemperature", "K2Node_VariableSet", 4300, y, f"VariableReference=(MemberParent=Class'\"{ITEM}\"',MemberName=\"CurrentTemperature\")") \
+        .pin("execute", "exec").pin("then", "exec", True).pin("CurrentTemperature", "float", False, "0.0").pin("self", "item")
+    Node("DrillTickOverheated", "K2Node_VariableSet", 4650, y, f"VariableReference=(MemberParent=Class'\"{ITEM}\"',MemberName=\"overheated\")") \
+        .pin("execute", "exec").pin("then", "exec", True).pin("overheated", "bool", False, "false").pin("self", "item")
+    wire_up([
+        "DrillTickList.RapidFireDrills>DrillTickLoop.Array", "DrillTickLoop.LoopBody>DrillTickTemperature.execute", "DrillTickLoop.Array Element>DrillTickTemperature.self",
+        "DrillTickTemperature.then>DrillTickOverheated.execute", "DrillTickLoop.Array Element>DrillTickOverheated.self",
+    ])
+
+
 def rate_pass(prefix, x, y, operation, value):
     """Change the fire rate of every weapon in the saved list."""
     var_get(f"{prefix}List", x, y + 200, "RapidFireWeapons", "weapons")
@@ -499,6 +565,7 @@ def rate_pass(prefix, x, y, operation, value):
 
 def build_cooling(y):
     """While Rapid Fire is active, keep clearing the heat on the saved weapons."""
+    cool_drills(y)
     var_get("CoolActive", 1600, y + 200, "RapidFireActive", "bool")
     branch("CoolCheck", 1600, y)
     var_get("CoolList", 1900, y + 200, "RapidFireWeapons", "weapons")
@@ -526,7 +593,7 @@ def build_cooling(y):
     wire_up([
         "CoolActive.RapidFireActive>CoolCheck.Condition", "CoolCheck.then>CoolLoop.Exec", "CoolList.RapidFireWeapons>CoolLoop.Array",
         "CoolLoop.LoopBody>CoolTemperature.execute", "CoolLoop.Array Element>CoolTemperature.self", "CoolTemperature.then>CoolOverheated.execute",
-        "CoolLoop.Array Element>CoolOverheated.self", "CoolLoop.Completed>CoolWait.execute", "CoolWait.then>CoolCheck.execute",
+        "CoolLoop.Array Element>CoolOverheated.self", "CoolLoop.Completed>DrillTickLoop.Exec", "DrillTickLoop.Completed>CoolWait.execute", "CoolWait.then>CoolCheck.execute",
     ])
 
 
@@ -555,16 +622,18 @@ def build_rapid_chain(y):
     restore_cannon_ramp(5250, y + 850)
     hold_cryo_pressure(1600, y + 1300)
     restore_cryo_pressure(5250, y + 1300)
+    skip_drill_heat(1600, y + 1750)
+    restore_drill_heat(5250, y + 1750)
     wire_up([
         "RapidActive.RapidFireActive>RapidGuard.Condition", "RapidGuard.else>RapidOn.execute",
         "RapidOn.then>RapidWeapons.execute", "RapidWeapons.then>RapidSave.execute", "RapidWeapons.OutActors>RapidSave.RapidFireWeapons",
-        "RapidSave.then>CurvesEmpty.execute", "CurvesEmpty.then>RapidSequence.execute", "RapidSequence.then_0>FasterLoop.Exec", "FasterLoop.Completed>CannonFind.execute", "CannonLoop.Completed>CryoFind.execute", "CryoLoop.Completed>RapidWait.execute", "RapidWait.then>RestoreLoop.Exec",
-        "RestoreLoop.Completed>RestoreCannonLoop.Exec", "RestoreCannonLoop.Completed>RestoreCryoLoop.Exec", "RestoreCryoLoop.Completed>RapidOff.execute",
+        "RapidSave.then>CurvesEmpty.execute", "CurvesEmpty.then>RapidSequence.execute", "RapidSequence.then_0>FasterLoop.Exec", "FasterLoop.Completed>CannonFind.execute", "CannonLoop.Completed>CryoFind.execute", "CryoLoop.Completed>DrillFind.execute", "DrillLoop.Completed>RapidWait.execute", "RapidWait.then>RestoreLoop.Exec",
+        "RestoreLoop.Completed>RestoreCannonLoop.Exec", "RestoreCannonLoop.Completed>RestoreCryoLoop.Exec", "RestoreCryoLoop.Completed>RestoreDrillLoop.Exec", "RestoreDrillLoop.Completed>RapidOff.execute",
     ])
 
 
 def build_rapid_event(y):
-    box("BoxRapidEvent", "Rapid Fire: change fire rate on every machine", -50, y - 80, 8600, 1850, (0.6, 0.45, 0.05))
+    box("BoxRapidEvent", "Rapid Fire: change fire rate on every machine", -50, y - 80, 8600, 2300, (0.6, 0.45, 0.05))
     Node("RapidEvent", "K2Node_CustomEvent", 0, y, 'CustomFunctionName="DiceRapidFire"\n   FunctionFlags=16576') \
         .pin("OutputDelegate", "delegate", True).pin("then", "exec", True)
     build_rapid_chain(y)
