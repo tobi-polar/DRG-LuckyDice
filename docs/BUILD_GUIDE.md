@@ -78,13 +78,11 @@ All event logic runs on the server except rapid fire. `TryPushActiveStatusEffect
 | Event | Who | How | Still to check |
 |---|---|---|---|
 | Nuke | All enemies | `GetFSDGameMode` → `EnemySpawnManager.FindEnemiesByClass(Pawn, isSwarmer)`, once with each `isSwarmer` value → get each `HealthComponentBase` → `Kill(causer)` **[header]** | Whether the `Pawn` class matches every enemy. Decide on bosses and lootbugs. |
-| Full ammo | Team | `InventoryComponent.Resupply(1.0)` **[header]** | Whether throwables need `ResupplyGrenades` too **[header]** |
+| Full ammo | Team | `InventoryComponent.Resupply(1.0)`, then a multicast where each machine calls `AmmoDrivenWeapon.InstantlyReload`, then `Resupply(1.0)` again. On the host, set each `SentryGun.AmmoCount` to `GetMaxAmmoCount` + 1, then call `UseAmmo(1)` so the HUD updates. **[header]** | Whether magazines and turrets fill on clients, and whether throwables need `ResupplyGrenades` too **[header]** |
 | Speed boost | Team | `TryPushActiveStatusEffect(STE_Dice_Speed, player, manager)` **[header]** | How strong `StatChange` feels |
-| Half speed | Team | The same call with `STE_Dice_Slow` | Whether 0.5 gives half speed |
 | Rapid fire | Team | Multicast from the server. Each client raises `RateOfFire` on its own dwarf's `AmmoDrivenWeapon` items, then restores it. **[header]** | **Highest risk.** See below. |
-| Wave spawns | Team | `GetFSDGameMode` → `GetWaveManager` → `TriggerWave(EWC_Generic)` **[header] [game]** | Whether it spawns correctly in every mission type |
-| Random teleport | Picker | Set Actor Location with Teleport on, using the position history below **[engine]** | Client movement correction |
-| Swap positions | All alive | Save all positions first, then move each player to the next player's position, with Sweep off and Teleport on **[engine]** | As above. With 3 or 4 players, this rotates them in a loop. |
+
+The bad events moved to a separate mod. See [UNLUCKY_DICE.md](UNLUCKY_DICE.md).
 
 **Status effects**
 
@@ -92,10 +90,9 @@ Copy the setup from the game's own effects. Each is a `StatusEffect` child with 
 
 | Our effect | Copied from | `Stat` | `StatChange` | Other settings |
 |---|---|---|---|---|
-| `STE_Dice_Speed` | `STE_ScoutSpeedBoost` **[game]** (uses 1.5, 2.5 s) | `PST_MovementSpeed` | Start at 1.0 | `Duration` 20, `RefreshDurationOnApplication` on |
-| `STE_Dice_Slow` | `STE_ElecticPlant_slowdown` **[game]** (uses 0.3) | `PST_MovementSpeedEnvironmentalPenalty` | Start at 0.5 | `Duration` 15, `RefreshDurationOnApplication` on |
+| `STE_Dice_Speed` | `STE_ScoutSpeedBoost` **[game]** (uses 1.5, 2.5 s) | `PST_MovementSpeed` | Start at 1.5 | `Duration` 20, `RefreshDurationOnApplication` on |
 
-The game's values show which stats to use, but not exactly how they scale, so measure them in game. Armor perks or mods that reduce environmental penalties may weaken the slow.
+In game, a `StatChange` of 3 is extremely fast. Whether the value is a multiplier is still unconfirmed, so tune it by feel.
 
 **Rapid fire**
 
@@ -109,26 +106,6 @@ Test this early, as the property might not change the real firing speed. Weapons
 
 **Rolling**
 - Keep an array of `{event, weight, enabled}` and pick by weighted random, as in the Survivor mod's `Roll()`.
-- Set weights so the bad events start at about 30% of the total.
-
-**Safe teleport points**
-
-A random point could land inside rock, so only use places a dwarf has actually stood:
-
-1. Every 5 s on the server, save each player's location if they're on the ground and alive. Keep the last 30.
-2. For a teleport, pick a saved point at least 20 s old, preferably from another player and not close to the picker.
-3. Digging or terrain changes can still leave a point unsafe, so test in small tunnels.
-
-**When events can't roll**
-
-Set an event's weight to 0 for the roll if:
-
-| Event | Blocked when |
-|---|---|
-| Swap positions | Fewer than 2 living players, or any dwarf is carrying something, until this is tested |
-| Teleport, swap, half speed | Extraction has started. `FSDGameState.OnCountdownStarted` **[header]** is the likely signal, so confirm it only fires for extraction. |
-| Teleport, swap | The target is downed. Start with `PlayerCharacter.IsAlive` **[header]**, and confirm what it returns for a downed dwarf. |
-| Teleport | There are no safe points yet |
 
 **Announcements**
 - Start with `FSDGameState.PostGameMessage(text)` **[header]**, so everyone sees the result in chat. Confirm clients receive it.
@@ -146,8 +123,6 @@ Check these from the **client's** side, not just the host's:
 - [ ] A client's pickup triggers the event exactly once.
 - [ ] Two players grabbing the dice at once only trigger one roll.
 - [ ] Ammo and speed effects apply to clients and end correctly.
-- [ ] Teleport and swap don't rubber-band.
-- [ ] Waves, teleports and swaps don't break during extraction, while downed, or while on a zipline or platform.
 - [ ] A client joining mid-mission doesn't cause errors.
 
 ## 6. Packaging

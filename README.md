@@ -1,17 +1,17 @@
 # Lucky Dice for Deep Rock Galactic
 
-Enemies have a small chance to drop a golden dice. When a dwarf picks it up, a random event fires, and it might not be a good one. This is the multiplayer follow-up to the Lucky Dice mod for Deep Rock Galactic: Survivor.
+Enemies have a small chance to drop a golden dice. When a dwarf picks it up, a random buff fires. This is the multiplayer follow-up to the Lucky Dice mod for Deep Rock Galactic: Survivor.
 
 **Status:** in development. Dice drops and the Full Ammo event work in solo; the other events and multiplayer aren't done yet. See [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md).
 
 ## Planned events
 
-| Good | Bad |
-|---|---|
-| Nuke | Wave spawns |
-| Full ammo | Half speed |
-| Rapid fire | Random teleport |
-| Speed boost | Swap positions |
+- Nuke
+- Full ammo
+- Rapid fire
+- Speed boost
+
+The bad events will be a separate mod, Unlucky Dice. See [docs/UNLUCKY_DICE.md](docs/UNLUCKY_DICE.md).
 
 ## Repo layout
 
