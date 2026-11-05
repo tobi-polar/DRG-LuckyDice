@@ -77,12 +77,26 @@ All event logic runs on the server except rapid fire. `TryPushActiveStatusEffect
 
 | Event | Who | How | Still to check |
 |---|---|---|---|
-| Nuke | All enemies | `GetFSDGameMode` → `EnemySpawnManager.FindEnemiesByClass(Pawn, isSwarmer)`, once with each `isSwarmer` value → get each `HealthComponentBase` → `Kill(causer)` **[header]** | Whether the `Pawn` class matches every enemy. Decide on bosses and lootbugs. |
+| Nuke | Enemies under 3000 health | Save `EnemySpawnManager.FindEnemiesByClass(Pawn, isSwarmer)` to an array, once with each `isSwarmer` value. For each, get `HealthComponentBase`, check `GetHealth`, then `Kill(self)`. **[header]** | Whether this catches every enemy, and whether 3000 is the right limit for bosses and lootbugs |
 | Full ammo | Team | `InventoryComponent.Resupply(1.0)`, then a multicast where each machine calls `AmmoDrivenWeapon.InstantlyReload`, then `Resupply(1.0)` again. On the host, set each `SentryGun.AmmoCount` to `GetMaxAmmoCount` + 1, then call `UseAmmo(1)` so the HUD updates. **[header]** | Whether magazines and turrets fill on clients, and whether throwables need `ResupplyGrenades` too **[header]** |
 | Speed boost | Team | `TryPushActiveStatusEffect(STE_Dice_Speed, player, manager)` **[header]** | How strong `StatChange` feels |
-| Rapid fire | Team | Multicast from the server. Each client raises `RateOfFire` on its own dwarf's `AmmoDrivenWeapon` items, then restores it. **[header]** | **Highest risk.** See below. |
+| Rapid fire | Team | Multicast from the server. Each machine doubles `RateOfFire` on every `AmmoDrivenWeapon`, waits 15 s, then halves it again. To stop overheating, it saves and clears `Item.HeatCurve`, scales `ManualHeatPerUse` and `HeatOnStartUse` by 0.001 and `CooldownRate` by 1000 for the duration, and clears `CurrentTemperature` and `overheated` every 0.1 s. **[header]** | Works on the minigun in a solo test: no heat for 15 s, then heat builds again. Other weapons, a second roll in one mission, and multiplayer are untested |
 
 The bad events moved to a separate mod. See [UNLUCKY_DICE.md](UNLUCKY_DICE.md).
+
+**Planned events**
+
+In build order, once Rapid Fire is tested. None of these has been built or run in the game.
+
+| Event | Who | How | Still to check |
+|---|---|---|---|
+| Regen | Team | A new status effect using `HealingStatusEffectItem` **[header]** | How much to heal per second, and for how long |
+| Freeze All | Enemies | Loop over enemies like the Nuke, aiming for 10 s, possibly with `EnemyTemperatureStatusEffectItem` **[header]** | How freezing is applied, and whether tough enemies thaw early |
+| Jump Boost | Team | Each machine raises `JumpZVelocity` **[engine]** for about 20 s, then restores it | Whether the game's movement uses it, and whether landing causes fall damage |
+| 1-Hit Mining | Team | Each machine raises `PickaxeItem.RockMiningBonus` and `DirtMiningBonus`, or sets `QuadDamageCarving`, for about 30 s **[header]** | What each setting does, and whether it reaches one hit on every material |
+| Team Revive (maybe) | Downed players | Only in the pool while someone is down, using `PlayerCharacter.InstantRevive` or `Server_CheatRevive` **[header]** | Whether these can be called from our code |
+
+With eight events at equal odds, each has a 12.5% chance per dice, so consider weighting them.
 
 **Status effects**
 
@@ -99,8 +113,8 @@ In game, a `StatChange` of 3 is extremely fast. Whether the value is a multiplie
 The `PST_` stats have no fire-rate entry, so a status effect won't do this. `AmmoDrivenWeapon` does have a `RateOfFire` property **[header]**, and firing appears to run on the player's own client, so the change likely has to happen there:
 
 1. The server multicasts the event to everyone. This relies on every player having the mod, through `RequiredByAll`.
-2. On each client, `GetLocalPlayerCharacter` **[header]** → `InventoryComponent.GetItem(category)` **[header]** for each weapon category → cast to `AmmoDrivenWeapon`.
-3. Save each weapon's `RateOfFire`, multiply it, then restore the saved value when the timer ends.
+2. On each machine, save every `AmmoDrivenWeapon` to `RapidFireWeapons` and multiply each weapon's `RateOfFire`.
+3. When the timer ends, divide the rate on the saved weapons only. `RapidFireActive` makes a second roll mid-effect do nothing, so the rate can't stack.
 
 Test this early, as the property might not change the real firing speed. Weapons that use their own fire logic, like `AutoCannon` with `MaxFireRate` **[header]**, may need separate handling. If it fails, use repeated `Resupply` as an "infinite ammo" event instead.
 
@@ -137,8 +151,11 @@ The guide warns that testing this way forces a sandbox save, so back up your sav
 
 ## 7. Milestone 4: polish
 
-- Custom banner or countdown for active events
+- Announce each event with its own banner and a sound or visual flourish
+- On-screen timer for events with a duration
+- Sound when a dice drops
 - Sound and particle effect on pickup
+- Dwarf voice line on pickup. The game has `DialogDataAsset` shouts **[header]**, so look through them in FModel for ones that fit
 - Blink for the last 5 s of the dice's life, as in the Survivor mod
 - In-game settings through ModHub, for weights and drop chance
 
