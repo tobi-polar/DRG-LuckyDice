@@ -1,0 +1,305 @@
+Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="DbgStart"
+   NodeComment="CONNECT Sequence Then 2 HERE"
+   bCommentBubbleVisible=True
+   bCommentBubblePinned=True
+   NodePosX=0
+   NodePosY=0
+   NodeGuid=CE910349F524464A9CEBADD46EF237B7
+   CustomProperties Pin (PinId=E86641AD61084572849DAD369AC6D69A,PinName="execute",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=0E2DB59BB20841779F380A3848039DAF,PinName="Condition",PinType.PinCategory="bool",LinkedTo=(DbgOn E997C16BB5D04EB2881A14C47B9D4DA6,),)
+   CustomProperties Pin (PinId=2BF1D0F5AE244A51AE727AED88653A1B,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgWait FC6169E117ED4D4AB7BDDC3F474269A4,),)
+   CustomProperties Pin (PinId=62DF4C8DC7264B9486C310F6DDB0BF77,PinName="else",Direction="EGPD_Output",PinType.PinCategory="exec",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="DbgOn"
+   VariableReference=(MemberName="DebugReadout",bSelfContext=True)
+   NodePosX=-250
+   NodePosY=150
+   NodeGuid=90A86525327E494CA3A560E5C792C592
+   CustomProperties Pin (PinId=E997C16BB5D04EB2881A14C47B9D4DA6,PinName="DebugReadout",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(DbgStart 0E2DB59BB20841779F380A3848039DAF,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgWait"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetSystemLibrary"',MemberName="Delay")
+   NodePosX=300
+   NodePosY=0
+   NodeGuid=B701261CD91E4648ABF6DEFEAD42939F
+   CustomProperties Pin (PinId=FC6169E117ED4D4AB7BDDC3F474269A4,PinName="execute",PinType.PinCategory="exec",LinkedTo=(DbgStart 2BF1D0F5AE244A51AE727AED88653A1B,DbgCast 0F729DD4D8E247F28F26D843B89B8558,DbgRemember 856D1C4E44A040BBBEB51961BB10BCA0,),)
+   CustomProperties Pin (PinId=724E2B5C29BE4D73A1F162DC4463BF11,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgCast E5B1301D04CA4528BF6EA8D61A1DD137,),)
+   CustomProperties Pin (PinId=9C3CDD6CAB90429BA0C75F93CB37D6A9,PinName="Duration",PinType.PinCategory="float",DefaultValue="0.25",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgPlayer"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="GetPlayerCharacter")
+   NodePosX=300
+   NodePosY=250
+   NodeGuid=4DE72910913749439B02182A6CF06FEE
+   CustomProperties Pin (PinId=2E908A28CEB24158A8D35CECDC4614A6,PinName="PlayerIndex",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=A98170B10E1E466A98E4DC11858C7690,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.Character"',LinkedTo=(DbgCast A5037CDBB620483798468840140200B5,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_DynamicCast Name="DbgCast"
+   TargetType=Class'"/Script/FSD.PlayerCharacter"'
+   NodePosX=650
+   NodePosY=0
+   NodeGuid=E6BBD6F9B3E74617AEFB8A78CF486B37
+   CustomProperties Pin (PinId=E5B1301D04CA4528BF6EA8D61A1DD137,PinName="execute",PinType.PinCategory="exec",LinkedTo=(DbgWait 724E2B5C29BE4D73A1F162DC4463BF11,),)
+   CustomProperties Pin (PinId=AFF32F85807F4CF2812A29282AEC80B3,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgChanged F0E9F3C5C53D4412964E34C35E86BA25,),)
+   CustomProperties Pin (PinId=0F729DD4D8E247F28F26D843B89B8558,PinName="CastFailed",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgWait FC6169E117ED4D4AB7BDDC3F474269A4,),)
+   CustomProperties Pin (PinId=A5037CDBB620483798468840140200B5,PinName="Object",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.Character"',LinkedTo=(DbgPlayer A98170B10E1E466A98E4DC11858C7690,),)
+   CustomProperties Pin (PinId=D281C4FD67804F028CB3D763CD065C39,PinName="AsPlayer Character",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.PlayerCharacter"',LinkedTo=(DbgHealthComp 5EAC9796EB4A41B9B3F5A3494F76599B,DbgStatusComp F7166E795F0C459386B488DB9D8536E8,),)
+   CustomProperties Pin (PinId=E51AE25E71FF4C109E66E4CBDDF71E22,PinName="bSuccess",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="DbgHealthComp"
+   VariableReference=(MemberParent=Class'"/Script/FSD.PlayerCharacter"',MemberName="HealthComponent")
+   NodePosX=650
+   NodePosY=300
+   NodeGuid=7EBB9DD05403465D92C2ABD83223F347
+   CustomProperties Pin (PinId=9226B01FF8DD4BD99CB2097307D58658,PinName="HealthComponent",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.PlayerHealthComponent"',LinkedTo=(DbgHealth 325552899EB749B5B6B20191CF461378,DbgShield 571D7E8ACFC54EE889FDDAB27E66BF10,),)
+   CustomProperties Pin (PinId=5EAC9796EB4A41B9B3F5A3494F76599B,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.PlayerCharacter"',LinkedTo=(DbgCast D281C4FD67804F028CB3D763CD065C39,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="DbgStatusComp"
+   VariableReference=(MemberParent=Class'"/Script/FSD.PlayerCharacter"',MemberName="StatusEffectsComponent")
+   NodePosX=650
+   NodePosY=450
+   NodeGuid=44EB98F0EF6647B8AED768F3AED4D3F6
+   CustomProperties Pin (PinId=E86B99F5A83A49C7BDC555D5FAC87017,PinName="StatusEffectsComponent",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.StatusEffectsComponent"',LinkedTo=(DbgFortify 33A9936DFC554BB18493CDFA3D1F0707,DbgRegen DB3D759512FA4512952D20CDE0E0549A,),)
+   CustomProperties Pin (PinId=F7166E795F0C459386B488DB9D8536E8,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.PlayerCharacter"',LinkedTo=(DbgCast D281C4FD67804F028CB3D763CD065C39,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgHealth"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.HealthComponentBase"',MemberName="GetHealth")
+   NodePosX=950
+   NodePosY=250
+   NodeGuid=7393DCD61D044BE383C2899E7889C450
+   CustomProperties Pin (PinId=325552899EB749B5B6B20191CF461378,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.HealthComponentBase"',LinkedTo=(DbgHealthComp 9226B01FF8DD4BD99CB2097307D58658,),)
+   CustomProperties Pin (PinId=4A8AB5C88EB24F839D911052D038DF3F,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(DbgText1 D157DB72CBAA4A10B37E5FD1EB74D714,DbgTotal 0D7A1C0A07EB42A78BA85BC72F480829,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgShield"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.HealthComponent"',MemberName="GetArmor")
+   NodePosX=950
+   NodePosY=350
+   NodeGuid=F406279265014B099AC601451E2E2704
+   CustomProperties Pin (PinId=571D7E8ACFC54EE889FDDAB27E66BF10,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.HealthComponentBase"',LinkedTo=(DbgHealthComp 9226B01FF8DD4BD99CB2097307D58658,),)
+   CustomProperties Pin (PinId=C0F9E91ABD1944FE89CB46FEC67F19A0,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(DbgText2 FFB15FD9C737472ABEF2EB934B546CB6,DbgTotal 7B08262BE3434BEFB2F6E3DEFA29B61D,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgTotal"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Add_FloatFloat")
+   NodePosX=1200
+   NodePosY=300
+   NodeGuid=CD3BD4B824CB4BD19B60D311B2929758
+   CustomProperties Pin (PinId=0D7A1C0A07EB42A78BA85BC72F480829,PinName="A",PinType.PinCategory="float",LinkedTo=(DbgHealth 4A8AB5C88EB24F839D911052D038DF3F,),)
+   CustomProperties Pin (PinId=7B08262BE3434BEFB2F6E3DEFA29B61D,PinName="B",PinType.PinCategory="float",LinkedTo=(DbgShield C0F9E91ABD1944FE89CB46FEC67F19A0,),)
+   CustomProperties Pin (PinId=6BF6871505E544E9BF81DA2B5D7F0036,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(DbgChange C959D72719E846959512AEA87EB0248C,DbgRemember 1E45D6AFFF5E4F65A0A3D302F79F12A6,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="DbgLast"
+   VariableReference=(MemberName="DebugLastHealth",bSelfContext=True)
+   NodePosX=1200
+   NodePosY=450
+   NodeGuid=22CFEF143A1D47C1AE836CC479F60529
+   CustomProperties Pin (PinId=1D3F346ACE8F4AC287A18941DA0A1D4C,PinName="DebugLastHealth",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(DbgChange CDC59A3A922B4164B9057BEA9631776C,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgChange"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Subtract_FloatFloat")
+   NodePosX=1450
+   NodePosY=300
+   NodeGuid=4801512A4D8E4F31AA847D74A2344428
+   CustomProperties Pin (PinId=C959D72719E846959512AEA87EB0248C,PinName="A",PinType.PinCategory="float",LinkedTo=(DbgTotal 6BF6871505E544E9BF81DA2B5D7F0036,),)
+   CustomProperties Pin (PinId=CDC59A3A922B4164B9057BEA9631776C,PinName="B",PinType.PinCategory="float",LinkedTo=(DbgLast 1D3F346ACE8F4AC287A18941DA0A1D4C,),)
+   CustomProperties Pin (PinId=2C993EEEF6D7437EBB14FC93F8B68B88,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(DbgText0 93B152EB8FB345B8820EA7164B151195,DbgSize 9BCD2862761E4AD2A2AC40D06BE92366,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgSize"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Abs")
+   NodePosX=1650
+   NodePosY=400
+   NodeGuid=6EAFA5B9D8394C8796665C1304721E02
+   CustomProperties Pin (PinId=9BCD2862761E4AD2A2AC40D06BE92366,PinName="A",PinType.PinCategory="float",LinkedTo=(DbgChange 2C993EEEF6D7437EBB14FC93F8B68B88,),)
+   CustomProperties Pin (PinId=CC647E4799FE4D37947E393DBD373BD1,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(DbgBig 32043E91D6604AC5BF77E3A04BC420D4,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgBig"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Greater_FloatFloat")
+   NodePosX=1850
+   NodePosY=400
+   NodeGuid=FB598C1BC6744F3D84C6674FAC029280
+   CustomProperties Pin (PinId=32043E91D6604AC5BF77E3A04BC420D4,PinName="A",PinType.PinCategory="float",LinkedTo=(DbgSize CC647E4799FE4D37947E393DBD373BD1,),)
+   CustomProperties Pin (PinId=1C48E50C8CD945569003D4E1670977BB,PinName="B",PinType.PinCategory="float",DefaultValue="0.5",)
+   CustomProperties Pin (PinId=2FCBF025EDC94659B921787A04A27429,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(DbgChanged EC3DF19620AD42B7A449654ECFA5C783,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="DbgChanged"
+   NodePosX=1950
+   NodePosY=0
+   NodeGuid=F12FC5A19BF34FBDAA6836E5CA8368A6
+   CustomProperties Pin (PinId=F0E9F3C5C53D4412964E34C35E86BA25,PinName="execute",PinType.PinCategory="exec",LinkedTo=(DbgCast AFF32F85807F4CF2812A29282AEC80B3,),)
+   CustomProperties Pin (PinId=EC3DF19620AD42B7A449654ECFA5C783,PinName="Condition",PinType.PinCategory="bool",LinkedTo=(DbgBig 2FCBF025EDC94659B921787A04A27429,),)
+   CustomProperties Pin (PinId=6D4AC333F3834124A9C6E3796DFBD1E8,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgMsg B926C57B9F1C4A619F7444328DB2E7A9,),)
+   CustomProperties Pin (PinId=F07B4908D75E4514B7E8A4077B0BE838,PinName="else",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgRemember 3A9F6F2CA0FA40928C13DFD3F1D8D434,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgFortify"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.StatusEffectsComponent"',MemberName="HasActiveEffect")
+   NodePosX=950
+   NodePosY=550
+   NodeGuid=12444B7A32D548009511D6FAA26AD23E
+   CustomProperties Pin (PinId=33A9936DFC554BB18493CDFA3D1F0707,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.StatusEffectsComponent"',LinkedTo=(DbgStatusComp E86B99F5A83A49C7BDC555D5FAC87017,),)
+   CustomProperties Pin (PinId=437A0923B8A14CA488B41EDC9B28794F,PinName="StatusEffect",PinType.PinCategory="class",PinType.PinSubCategoryObject=Class'"/Script/FSD.StatusEffect"',DefaultObject="/Game/LuckyDice/STE_Dice_Fortify.STE_Dice_Fortify_C",)
+   CustomProperties Pin (PinId=BE88773FE7B24C0B98C9358D506FDDD5,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(DbgText3 606A3131E0114DB3920C239CB6AB68BF,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgRegen"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.StatusEffectsComponent"',MemberName="HasActiveEffect")
+   NodePosX=950
+   NodePosY=650
+   NodeGuid=99ADDC979EAD42E5A8D21BA665C2FC81
+   CustomProperties Pin (PinId=DB3D759512FA4512952D20CDE0E0549A,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.StatusEffectsComponent"',LinkedTo=(DbgStatusComp E86B99F5A83A49C7BDC555D5FAC87017,),)
+   CustomProperties Pin (PinId=20CB8F07BEA34CB6AE7F546C738E29B6,PinName="StatusEffect",PinType.PinCategory="class",PinType.PinSubCategoryObject=Class'"/Script/FSD.StatusEffect"',DefaultObject="/Game/LuckyDice/STE_Dice_Regen.STE_Dice_Regen_C",)
+   CustomProperties Pin (PinId=FB6F3704E52F4A5FA197CF0860AF22D1,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(DbgText4 A2563C77FFBB4D56A9D2F601AA754002,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgText0"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Conv_FloatToString")
+   NodePosX=1200
+   NodePosY=800
+   NodeGuid=403FC1CFEBEF498399563BA34394D350
+   CustomProperties Pin (PinId=93B152EB8FB345B8820EA7164B151195,PinName="InFloat",PinType.PinCategory="float",LinkedTo=(DbgChange 2C993EEEF6D7437EBB14FC93F8B68B88,),)
+   CustomProperties Pin (PinId=8B0F43ACCA6342CF82DE68B5E2CDC63E,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin0 1E84F12455334624BDDDA11257BB4CCC,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgLabel0"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=1400
+   NodePosY=900
+   NodeGuid=F95B93A884B04ED9BA97EA36DBB26D2E
+   CustomProperties Pin (PinId=A0BDDCE9DC1F4118BAE4D050FC8424CB,PinName="A",PinType.PinCategory="string",DefaultValue="Dice debug: change ",)
+   CustomProperties Pin (PinId=2750012D6F1243F2895F9B0F247A711A,PinName="B",PinType.PinCategory="string",)
+   CustomProperties Pin (PinId=8397BB37292E449181826B0CB5209E47,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin0 63E15D9FA4BC4409A4369730A2C8B2A6,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgJoin0"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=1400
+   NodePosY=1000
+   NodeGuid=24674D6431C64492ACBBA523732AEB75
+   CustomProperties Pin (PinId=63E15D9FA4BC4409A4369730A2C8B2A6,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgLabel0 8397BB37292E449181826B0CB5209E47,),)
+   CustomProperties Pin (PinId=1E84F12455334624BDDDA11257BB4CCC,PinName="B",PinType.PinCategory="string",LinkedTo=(DbgText0 8B0F43ACCA6342CF82DE68B5E2CDC63E,),)
+   CustomProperties Pin (PinId=531DB6E8F8FC4F7AB1883AC261208536,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgLabel1 10E53C8A21FE485BA84F430D0CC9DF73,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgText1"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Conv_FloatToString")
+   NodePosX=1650
+   NodePosY=800
+   NodeGuid=2E3A2CE4E58A492F88F8998DFC0FCD5E
+   CustomProperties Pin (PinId=D157DB72CBAA4A10B37E5FD1EB74D714,PinName="InFloat",PinType.PinCategory="float",LinkedTo=(DbgHealth 4A8AB5C88EB24F839D911052D038DF3F,),)
+   CustomProperties Pin (PinId=44C20FAA92BC476EB7EE0E09F9E88A3C,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin1 5E4E0EBE0FC6422FB803A746D7FD5605,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgLabel1"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=1850
+   NodePosY=900
+   NodeGuid=7689140356FF4F74BE37916B2D4D17CC
+   CustomProperties Pin (PinId=10E53C8A21FE485BA84F430D0CC9DF73,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgJoin0 531DB6E8F8FC4F7AB1883AC261208536,),)
+   CustomProperties Pin (PinId=21546FA455704D04B6B044F67FB90D39,PinName="B",PinType.PinCategory="string",DefaultValue=" | HP ",)
+   CustomProperties Pin (PinId=7991F53FFA4E47439439B19712EE91C7,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin1 8F0556B2A89C41449F935A63B91C011E,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgJoin1"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=1850
+   NodePosY=1000
+   NodeGuid=206B3A734D4B431A80ACFCA3FB98FF00
+   CustomProperties Pin (PinId=8F0556B2A89C41449F935A63B91C011E,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgLabel1 7991F53FFA4E47439439B19712EE91C7,),)
+   CustomProperties Pin (PinId=5E4E0EBE0FC6422FB803A746D7FD5605,PinName="B",PinType.PinCategory="string",LinkedTo=(DbgText1 44C20FAA92BC476EB7EE0E09F9E88A3C,),)
+   CustomProperties Pin (PinId=88D2CA40240B4336B5B68D88FA0CCEEB,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgLabel2 202EF325384B4F308846CFE58EA5B460,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgText2"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Conv_FloatToString")
+   NodePosX=2100
+   NodePosY=800
+   NodeGuid=2611914D1883440D804E830B70E53E45
+   CustomProperties Pin (PinId=FFB15FD9C737472ABEF2EB934B546CB6,PinName="InFloat",PinType.PinCategory="float",LinkedTo=(DbgShield C0F9E91ABD1944FE89CB46FEC67F19A0,),)
+   CustomProperties Pin (PinId=E5FF4214A2E5450CA23DA983B3CDF401,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin2 3DE0023A108F4256A6D2F9B7202AC397,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgLabel2"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=2300
+   NodePosY=900
+   NodeGuid=08F243AF27054166BEAEA00664773EA6
+   CustomProperties Pin (PinId=202EF325384B4F308846CFE58EA5B460,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgJoin1 88D2CA40240B4336B5B68D88FA0CCEEB,),)
+   CustomProperties Pin (PinId=1EE28E090A134320BFF2BE0CE6B9835D,PinName="B",PinType.PinCategory="string",DefaultValue=" | shield ",)
+   CustomProperties Pin (PinId=903BFEE5DDB24126959CC09169F5B642,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin2 9A0B5CC90B6F46BFA1B33EB45A724AB2,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgJoin2"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=2300
+   NodePosY=1000
+   NodeGuid=57B9E64D01DF4AAB8A7F2453379E96CD
+   CustomProperties Pin (PinId=9A0B5CC90B6F46BFA1B33EB45A724AB2,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgLabel2 903BFEE5DDB24126959CC09169F5B642,),)
+   CustomProperties Pin (PinId=3DE0023A108F4256A6D2F9B7202AC397,PinName="B",PinType.PinCategory="string",LinkedTo=(DbgText2 E5FF4214A2E5450CA23DA983B3CDF401,),)
+   CustomProperties Pin (PinId=791C9B8CA4BB46B2B358C0B6A9AA98FE,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgLabel3 1A7E2DEE2F0C44B89D6159A365B516EA,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgText3"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Conv_BoolToString")
+   NodePosX=2550
+   NodePosY=800
+   NodeGuid=2B1329E5F41344A3996DAAE5A67494D2
+   CustomProperties Pin (PinId=606A3131E0114DB3920C239CB6AB68BF,PinName="InBool",PinType.PinCategory="bool",LinkedTo=(DbgFortify BE88773FE7B24C0B98C9358D506FDDD5,),)
+   CustomProperties Pin (PinId=082095CB6E9F45EEA50346F590371A5B,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin3 1A429D5FAF064DFA95DB2FE35FE331A2,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgLabel3"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=2750
+   NodePosY=900
+   NodeGuid=9C94E5D3DE6D42F8A2012015E747C370
+   CustomProperties Pin (PinId=1A7E2DEE2F0C44B89D6159A365B516EA,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgJoin2 791C9B8CA4BB46B2B358C0B6A9AA98FE,),)
+   CustomProperties Pin (PinId=95CD5D526015443D8B886D59499E3F6B,PinName="B",PinType.PinCategory="string",DefaultValue=" | Fortify ",)
+   CustomProperties Pin (PinId=BE9BCE87DE5A4CDBB5313412D665E5A7,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin3 A059A228D2AA46C691ABD8EA1A2B1511,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgJoin3"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=2750
+   NodePosY=1000
+   NodeGuid=D58B8B7F6C754BA4BA1D6E27C87863B3
+   CustomProperties Pin (PinId=A059A228D2AA46C691ABD8EA1A2B1511,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgLabel3 BE9BCE87DE5A4CDBB5313412D665E5A7,),)
+   CustomProperties Pin (PinId=1A429D5FAF064DFA95DB2FE35FE331A2,PinName="B",PinType.PinCategory="string",LinkedTo=(DbgText3 082095CB6E9F45EEA50346F590371A5B,),)
+   CustomProperties Pin (PinId=E8546AE0D12F43ADA91C66A4E0227ABE,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgLabel4 9E5C832B9742489581E01458C9B69490,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgText4"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Conv_BoolToString")
+   NodePosX=3000
+   NodePosY=800
+   NodeGuid=E7663698047F488395DBBE0F6023CD0A
+   CustomProperties Pin (PinId=A2563C77FFBB4D56A9D2F601AA754002,PinName="InBool",PinType.PinCategory="bool",LinkedTo=(DbgRegen FB6F3704E52F4A5FA197CF0860AF22D1,),)
+   CustomProperties Pin (PinId=9861031B3D2F45769F311EF091BF8044,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin4 13AC1D91DDFC4E82A04B8D869D71109D,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgLabel4"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=3200
+   NodePosY=900
+   NodeGuid=E0F3E3B5275349BF83E55EE5CC282ED2
+   CustomProperties Pin (PinId=9E5C832B9742489581E01458C9B69490,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgJoin3 E8546AE0D12F43ADA91C66A4E0227ABE,),)
+   CustomProperties Pin (PinId=09E140AAAC484F9A93D94266F9BEDDEF,PinName="B",PinType.PinCategory="string",DefaultValue=" | Regen ",)
+   CustomProperties Pin (PinId=24DC3FE1B64844E1B7501B080666B297,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgJoin4 BB19FD9F3B444F519A2AAB0BA8EC78D1,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgJoin4"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetStringLibrary"',MemberName="Concat_StrStr")
+   NodePosX=3200
+   NodePosY=1000
+   NodeGuid=3B7FE912788C4859A27C8F091333ED57
+   CustomProperties Pin (PinId=BB19FD9F3B444F519A2AAB0BA8EC78D1,PinName="A",PinType.PinCategory="string",LinkedTo=(DbgLabel4 24DC3FE1B64844E1B7501B080666B297,),)
+   CustomProperties Pin (PinId=13AC1D91DDFC4E82A04B8D869D71109D,PinName="B",PinType.PinCategory="string",LinkedTo=(DbgText4 9861031B3D2F45769F311EF091BF8044,),)
+   CustomProperties Pin (PinId=5D155BADCB5040C3879F35A34C8FA9B8,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="string",LinkedTo=(DbgMsg 390436195421473B871B21CE91A7CF34,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgState"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.GameFunctionLibrary"',MemberName="GetFSDGameState")
+   NodePosX=2200
+   NodePosY=250
+   NodeGuid=C9042E21C55C44C9B444E161B285F8D2
+   CustomProperties Pin (PinId=099AD096221C46A787BA8F881E598961,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.FSDGameState"',LinkedTo=(DbgMsg 0145F70A2A9C45CEAD487B0C66AAD1F8,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="DbgMsg"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.FSDGameState"',MemberName="PostGameMessage")
+   NodePosX=2300
+   NodePosY=0
+   NodeGuid=C88CAAEDEED54BF7B376A70DABC20A3C
+   CustomProperties Pin (PinId=B926C57B9F1C4A619F7444328DB2E7A9,PinName="execute",PinType.PinCategory="exec",LinkedTo=(DbgChanged 6D4AC333F3834124A9C6E3796DFBD1E8,),)
+   CustomProperties Pin (PinId=CCAFF450028542309A11689E8EB57543,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgRemember 3A9F6F2CA0FA40928C13DFD3F1D8D434,),)
+   CustomProperties Pin (PinId=0145F70A2A9C45CEAD487B0C66AAD1F8,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.FSDGameState"',LinkedTo=(DbgState 099AD096221C46A787BA8F881E598961,),)
+   CustomProperties Pin (PinId=390436195421473B871B21CE91A7CF34,PinName="Msg",PinType.PinCategory="string",DefaultValue="",LinkedTo=(DbgJoin4 5D155BADCB5040C3879F35A34C8FA9B8,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="DbgRemember"
+   VariableReference=(MemberName="DebugLastHealth",bSelfContext=True)
+   NodePosX=2650
+   NodePosY=0
+   NodeGuid=566BADBEAE9A48A09A87B5001F36CC33
+   CustomProperties Pin (PinId=3A9F6F2CA0FA40928C13DFD3F1D8D434,PinName="execute",PinType.PinCategory="exec",LinkedTo=(DbgMsg CCAFF450028542309A11689E8EB57543,DbgChanged F07B4908D75E4514B7E8A4077B0BE838,),)
+   CustomProperties Pin (PinId=856D1C4E44A040BBBEB51961BB10BCA0,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(DbgWait FC6169E117ED4D4AB7BDDC3F474269A4,),)
+   CustomProperties Pin (PinId=1E45D6AFFF5E4F65A0A3D302F79F12A6,PinName="DebugLastHealth",PinType.PinCategory="float",LinkedTo=(DbgTotal 6BF6871505E544E9BF81DA2B5D7F0036,),)
+End Object

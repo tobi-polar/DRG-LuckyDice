@@ -1,0 +1,161 @@
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="HealCount"
+   VariableReference=(MemberName="FortifyHealsLeft",bSelfContext=True)
+   NodeComment="CONNECT the FORTIFY! Post Game Message HERE"
+   bCommentBubbleVisible=True
+   bCommentBubblePinned=True
+   NodePosX=0
+   NodePosY=0
+   NodeGuid=E1C13767232D445DADD3843020CBA0F7
+   CustomProperties Pin (PinId=DE7F0F947DE845949F39CF91922D6FAD,PinName="execute",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=BB95B78FBAB7476BB9ED261B676875A7,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealWait 4A0366904279484B8A8F2D2815C87EBC,),)
+   CustomProperties Pin (PinId=485F40D2BA644E559D5A590CB7C79703,PinName="FortifyHealsLeft",PinType.PinCategory="int",DefaultValue="30",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealWait"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetSystemLibrary"',MemberName="Delay")
+   NodePosX=300
+   NodePosY=0
+   NodeGuid=3B259314517E44B7AFF7F73C202D2B91
+   CustomProperties Pin (PinId=4A0366904279484B8A8F2D2815C87EBC,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealCount BB95B78FBAB7476BB9ED261B676875A7,HealAgain B942B8B92C23475EBF7EED92AD411F5D,),)
+   CustomProperties Pin (PinId=F9E04DFD3C7E4BFCAEB3CFAD06468265,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealPlayers EEB67AB43D254EE4AA87567109EA963C,),)
+   CustomProperties Pin (PinId=8C5DF6B900964AFEA859AA7D2BEC4F16,PinName="Duration",PinType.PinCategory="float",DefaultValue="1.0",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealPlayers"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="GetAllActorsOfClass")
+   NodePosX=600
+   NodePosY=0
+   NodeGuid=5F1CAB7CE0AC4567B06D56313AA4D235
+   CustomProperties Pin (PinId=EEB67AB43D254EE4AA87567109EA963C,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealWait F9E04DFD3C7E4BFCAEB3CFAD06468265,),)
+   CustomProperties Pin (PinId=9056AA43AB594928A4A6CC263CE188D6,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealLoop 7F89F3B34CBE4CEAAA6EB1139547E747,),)
+   CustomProperties Pin (PinId=3F12FFBD3170492EB6D3234BB2E2DFA2,PinName="ActorClass",PinType.PinCategory="class",PinType.PinSubCategoryObject=Class'"/Script/Engine.Actor"',DefaultObject="/Script/FSD.PlayerCharacter",)
+   CustomProperties Pin (PinId=D394FA26FDB0499F99ECCEF4CA5B0D5F,PinName="OutActors",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.Actor"',PinType.ContainerType=Array,LinkedTo=(HealLoop 841AA7B136D74D589342DD28D39CADD3,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MacroInstance Name="HealLoop"
+   MacroGraphReference=(MacroGraph=EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop"',GraphBlueprint=Blueprint'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros"',GraphGuid=99DBFD5540A796041F72A5A9DA655026)
+   ResolvedWildcardType=(PinCategory="object",PinSubCategoryObject=Class'"/Script/Engine.Actor"')
+   NodePosX=950
+   NodePosY=0
+   NodeGuid=70195485B18C4324BD98AFBCE314EE43
+   CustomProperties Pin (PinId=7F89F3B34CBE4CEAAA6EB1139547E747,PinName="Exec",PinType.PinCategory="exec",LinkedTo=(HealPlayers 9056AA43AB594928A4A6CC263CE188D6,),)
+   CustomProperties Pin (PinId=841AA7B136D74D589342DD28D39CADD3,PinName="Array",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.Actor"',PinType.ContainerType=Array,LinkedTo=(HealPlayers D394FA26FDB0499F99ECCEF4CA5B0D5F,),)
+   CustomProperties Pin (PinId=6E99773F6490490A8FC4ECFA817897F7,PinName="LoopBody",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealFind 277D740D4D794817BAD5A2D42CB21447,),)
+   CustomProperties Pin (PinId=13C1162B7A9D4349B33365EBF2A6E129,PinName="Array Element",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.Actor"',LinkedTo=(HealFind 744DCFD1D7C44636943BED99451F2C8F,),)
+   CustomProperties Pin (PinId=72B7F95CC1D64DB0AF42CBDD362A278D,PinName="Completed",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealCountDown 96B0026770A14141BAFCE11DD45AB480,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealFind"
+   FunctionReference=(MemberName="GetComponentByClass",MemberParent=Class'"/Script/Engine.Actor"')
+   NodePosX=1300
+   NodePosY=0
+   NodeGuid=E7314C6386F94E669BADB9762C989BEC
+   CustomProperties Pin (PinId=277D740D4D794817BAD5A2D42CB21447,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealLoop 6E99773F6490490A8FC4ECFA817897F7,),)
+   CustomProperties Pin (PinId=8C9FB23FC08A48E992BC34105AB65FC7,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealCast 6E85B81B59064234921E7153576FE8BE,),)
+   CustomProperties Pin (PinId=744DCFD1D7C44636943BED99451F2C8F,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.Actor"',LinkedTo=(HealLoop 13C1162B7A9D4349B33365EBF2A6E129,),)
+   CustomProperties Pin (PinId=6652C18C364B47DB84EC04D86E0C7848,PinName="ComponentClass",PinType.PinCategory="class",PinType.PinSubCategoryObject=Class'"/Script/Engine.ActorComponent"',DefaultObject="/Script/FSD.PlayerHealthComponent",)
+   CustomProperties Pin (PinId=E1FB4AE3D03C438999E758AAF55C6E4F,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.ActorComponent"',LinkedTo=(HealCast 8E176F2D750C4691997648C7E51DFFF8,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_DynamicCast Name="HealCast"
+   TargetType=Class'"/Script/FSD.PlayerHealthComponent"'
+   NodePosX=1650
+   NodePosY=0
+   NodeGuid=7326160764124FA48671A0316F4D8969
+   CustomProperties Pin (PinId=6E85B81B59064234921E7153576FE8BE,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealFind 8C9FB23FC08A48E992BC34105AB65FC7,),)
+   CustomProperties Pin (PinId=7EC71A60EFA84231A5DAF286BE18B921,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealIfAlive 70600DB9A5754C05801FDCFBDF7BE2B1,),)
+   CustomProperties Pin (PinId=49FC28E789574C409ED66BE4C6F74163,PinName="CastFailed",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=8E176F2D750C4691997648C7E51DFFF8,PinName="Object",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.ActorComponent"',LinkedTo=(HealFind E1FB4AE3D03C438999E758AAF55C6E4F,),)
+   CustomProperties Pin (PinId=B46BD47106234270B31650995AD1E41B,PinName="AsPlayer Health Component",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.PlayerHealthComponent"',LinkedTo=(HealAlive 3E2BA274E26846D6B80F924D459B0661,HealNow F6FD8199C0E84F5EB0B3BE2863CAF5E4,HealMax 4511D2EEC58D4563898CDF43F35553CB,),)
+   CustomProperties Pin (PinId=E0C04CBAB7F64BFBA5A1354D059F7173,PinName="bSuccess",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealAlive"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.HealthComponentBase"',MemberName="IsAlive")
+   NodePosX=1650
+   NodePosY=250
+   NodeGuid=67A33263E5E54ED5AB9AABCDF61DD0D4
+   CustomProperties Pin (PinId=3E2BA274E26846D6B80F924D459B0661,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.HealthComponentBase"',LinkedTo=(HealCast B46BD47106234270B31650995AD1E41B,),)
+   CustomProperties Pin (PinId=B7C9DD628FFD4A2589662B2F816A45D1,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(HealIfAlive 8760A25E6FD14CE08334F51FBF532B87,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="HealIfAlive"
+   NodePosX=2000
+   NodePosY=0
+   NodeGuid=14EEC87A83264672BFDB8415D79BE84A
+   CustomProperties Pin (PinId=70600DB9A5754C05801FDCFBDF7BE2B1,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealCast 7EC71A60EFA84231A5DAF286BE18B921,),)
+   CustomProperties Pin (PinId=8760A25E6FD14CE08334F51FBF532B87,PinName="Condition",PinType.PinCategory="bool",LinkedTo=(HealAlive B7C9DD628FFD4A2589662B2F816A45D1,),)
+   CustomProperties Pin (PinId=0F9D371FF206479289292D67E90CDEAA,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealNow 6289DA9703CD42DDB2C89EE127A6392C,),)
+   CustomProperties Pin (PinId=9639372E22A6415E9E3547B4B52E4036,PinName="else",Direction="EGPD_Output",PinType.PinCategory="exec",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="HealMax"
+   VariableReference=(MemberParent=Class'"/Script/FSD.PlayerHealthComponent"',MemberName="MaxHealth")
+   NodePosX=2000
+   NodePosY=250
+   NodeGuid=099425B4B83C4F37AFDBF0A639E5F594
+   CustomProperties Pin (PinId=82534C0E9C494CBAA1E00AFA48BF08CB,PinName="MaxHealth",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(HealShare 6C86825998EC4F1580E9B9B6D1BBEAF4,),)
+   CustomProperties Pin (PinId=4511D2EEC58D4563898CDF43F35553CB,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.PlayerHealthComponent"',LinkedTo=(HealCast B46BD47106234270B31650995AD1E41B,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealShare"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Multiply_FloatFloat")
+   NodePosX=2250
+   NodePosY=250
+   NodeGuid=34A616D73FC344A5B6A52855EA5B87AC
+   CustomProperties Pin (PinId=6C86825998EC4F1580E9B9B6D1BBEAF4,PinName="A",PinType.PinCategory="float",LinkedTo=(HealMax 82534C0E9C494CBAA1E00AFA48BF08CB,),)
+   CustomProperties Pin (PinId=DDA2670BD4C04DC993864596E9057313,PinName="B",PinType.PinCategory="float",DefaultValue="0.02",)
+   CustomProperties Pin (PinId=D0085C4BB7F44FC1961C130270AC180D,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(HealNow 755ABEF99B174A14AA12F3DB99C4C0AF,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealNow"
+   FunctionReference=(MemberParent=Class'"/Script/FSD.HealthComponentBase"',MemberName="Heal")
+   NodePosX=2300
+   NodePosY=0
+   NodeGuid=E3F8E2F5C0EA4CCFB5CD1076CAFA6506
+   CustomProperties Pin (PinId=6289DA9703CD42DDB2C89EE127A6392C,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealIfAlive 0F9D371FF206479289292D67E90CDEAA,),)
+   CustomProperties Pin (PinId=4FC976C9F3E8491C868C7F89CD3C74DC,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=F6FD8199C0E84F5EB0B3BE2863CAF5E4,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/FSD.HealthComponentBase"',LinkedTo=(HealCast B46BD47106234270B31650995AD1E41B,),)
+   CustomProperties Pin (PinId=755ABEF99B174A14AA12F3DB99C4C0AF,PinName="amount",PinType.PinCategory="float",LinkedTo=(HealShare D0085C4BB7F44FC1961C130270AC180D,),)
+   CustomProperties Pin (PinId=93D2F22359024839942FE773B556D7F7,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="HealLeftA"
+   VariableReference=(MemberName="FortifyHealsLeft",bSelfContext=True)
+   NodePosX=950
+   NodePosY=450
+   NodeGuid=F3BAFA1A9C7149FCA3D5E9515669DE08
+   CustomProperties Pin (PinId=52488FC42FB04020852262D20C8FB237,PinName="FortifyHealsLeft",Direction="EGPD_Output",PinType.PinCategory="int",LinkedTo=(HealMinusOne 6481904CF0F94E788E479BA3F7D53A6D,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealMinusOne"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Subtract_IntInt")
+   NodePosX=1150
+   NodePosY=450
+   NodeGuid=A96CC8E972BF482BBEE43E5433DBFD87
+   CustomProperties Pin (PinId=6481904CF0F94E788E479BA3F7D53A6D,PinName="A",PinType.PinCategory="int",LinkedTo=(HealLeftA 52488FC42FB04020852262D20C8FB237,),)
+   CustomProperties Pin (PinId=029B4F59BAE14C09ADA98500B299D469,PinName="B",PinType.PinCategory="int",DefaultValue="1",)
+   CustomProperties Pin (PinId=DC5AC276294945A291F978AE590F5CAF,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="int",LinkedTo=(HealCountDown 079F47B8191340D29163DB2E62FAA4AE,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="HealCountDown"
+   VariableReference=(MemberName="FortifyHealsLeft",bSelfContext=True)
+   NodePosX=1300
+   NodePosY=400
+   NodeGuid=9D64B39C40B4464FA729BD6994BEAD87
+   CustomProperties Pin (PinId=96B0026770A14141BAFCE11DD45AB480,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealLoop 72B7F95CC1D64DB0AF42CBDD362A278D,),)
+   CustomProperties Pin (PinId=8A0A511EDFEE4AA895364F869A81FB7B,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealAgain 981C10A1C733427CB71898BC2C683772,),)
+   CustomProperties Pin (PinId=079F47B8191340D29163DB2E62FAA4AE,PinName="FortifyHealsLeft",PinType.PinCategory="int",LinkedTo=(HealMinusOne DC5AC276294945A291F978AE590F5CAF,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="HealLeftB"
+   VariableReference=(MemberName="FortifyHealsLeft",bSelfContext=True)
+   NodePosX=1550
+   NodePosY=550
+   NodeGuid=A7F47D086E644E95A3C4E1E170B78759
+   CustomProperties Pin (PinId=D86551A64C7446E492E5B2DDCD08238E,PinName="FortifyHealsLeft",Direction="EGPD_Output",PinType.PinCategory="int",LinkedTo=(HealMore B1A69D1014494AA1B43C94F46F713959,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="HealMore"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Greater_IntInt")
+   NodePosX=1750
+   NodePosY=550
+   NodeGuid=311791B2FBE74B7F8BB9D1773BB8E7C3
+   CustomProperties Pin (PinId=B1A69D1014494AA1B43C94F46F713959,PinName="A",PinType.PinCategory="int",LinkedTo=(HealLeftB D86551A64C7446E492E5B2DDCD08238E,),)
+   CustomProperties Pin (PinId=4596334E78E94FDF86461A07466903FE,PinName="B",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=FF6934FE2353442B872D962E3D2391A7,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(HealAgain 97F3C5429EC541568B5D10C4CEF3E9D7,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="HealAgain"
+   NodePosX=1650
+   NodePosY=400
+   NodeGuid=CCA6BAB1756545AC943741B0322F2D35
+   CustomProperties Pin (PinId=981C10A1C733427CB71898BC2C683772,PinName="execute",PinType.PinCategory="exec",LinkedTo=(HealCountDown 8A0A511EDFEE4AA895364F869A81FB7B,),)
+   CustomProperties Pin (PinId=97F3C5429EC541568B5D10C4CEF3E9D7,PinName="Condition",PinType.PinCategory="bool",LinkedTo=(HealMore FF6934FE2353442B872D962E3D2391A7,),)
+   CustomProperties Pin (PinId=B942B8B92C23475EBF7EED92AD411F5D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(HealWait 4A0366904279484B8A8F2D2815C87EBC,),)
+   CustomProperties Pin (PinId=57F979CC05624BD1A2920EC24BD3A7C4,PinName="else",Direction="EGPD_Output",PinType.PinCategory="exec",)
+End Object

@@ -1,0 +1,333 @@
+Begin Object Class=/Script/BlueprintGraph.K2Node_Event Name="PageConstruct"
+   EventReference=(MemberParent=Class'"/Script/UMG.UserWidget"',MemberName="Construct")
+   bOverrideFunction=True
+   NodePosX=0
+   NodePosY=0
+   NodeGuid=39DF9187678043468B4C85C6F0FE08F9
+   CustomProperties Pin (PinId=6EE7E40615344F4DB86B92B219B3F4FA,PinName="OutputDelegate",Direction="EGPD_Output",PinType.PinCategory="delegate",)
+   CustomProperties Pin (PinId=2047BEC50BB94D37AABBFE463C3D3FB5,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageExists E849ABEBB476448CB23C8301A7014B74,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="PageExists"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="DoesSaveGameExist")
+   NodePosX=250
+   NodePosY=0
+   NodeGuid=017CAA0A96084DD7962473AB9A479B75
+   CustomProperties Pin (PinId=E849ABEBB476448CB23C8301A7014B74,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageConstruct 2047BEC50BB94D37AABBFE463C3D3FB5,),)
+   CustomProperties Pin (PinId=460AB272275444A9B304DAEE4B1E6831,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageBranch 5BFD80B867A54ED3BC31E0250803B8A7,),)
+   CustomProperties Pin (PinId=4D0E77840A0140E1ADAE41D081A32297,PinName="SlotName",PinType.PinCategory="string",DefaultValue="LuckyDiceSettings",)
+   CustomProperties Pin (PinId=4C6A20D3ED5842BF86C42A71FCAF6C2E,PinName="UserIndex",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=DF1B764F7C9E4E459EA8CEE03AF00195,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",LinkedTo=(PageBranch 560B03AB031A4DC28B26E07834725D81,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="PageBranch"
+   NodePosX=600
+   NodePosY=0
+   NodeGuid=52DB40010FE54BB98F7D73866C4D6689
+   CustomProperties Pin (PinId=5BFD80B867A54ED3BC31E0250803B8A7,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageExists 460AB272275444A9B304DAEE4B1E6831,),)
+   CustomProperties Pin (PinId=560B03AB031A4DC28B26E07834725D81,PinName="Condition",PinType.PinCategory="bool",LinkedTo=(PageExists DF1B764F7C9E4E459EA8CEE03AF00195,),)
+   CustomProperties Pin (PinId=173694D57BDB4B02A6F16C9FCC492F42,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageLoad 716092FC86B347F382C46BE647015B1F,),)
+   CustomProperties Pin (PinId=4CA54FE55FF447868324203420A7AF62,PinName="else",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageNew 487DE23818A8477AACDF9047D2AE2FED,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="PageLoad"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="LoadGameFromSlot")
+   NodePosX=900
+   NodePosY=0
+   NodeGuid=78932AFD8A624F50B5EE056EBE7A7F04
+   CustomProperties Pin (PinId=716092FC86B347F382C46BE647015B1F,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageBranch 173694D57BDB4B02A6F16C9FCC492F42,),)
+   CustomProperties Pin (PinId=67DB3E2EDB9544D3B6F012A771EF3649,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageCast BB7597A680AA4FB1939BBA32C3038524,),)
+   CustomProperties Pin (PinId=6EF6E44ABC0043DEA20AEADB50181AA6,PinName="SlotName",PinType.PinCategory="string",DefaultValue="LuckyDiceSettings",)
+   CustomProperties Pin (PinId=9706D5B419B04779A96F52A28B858185,PinName="UserIndex",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=2295B08740E1453AA86DCF54A70C365E,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(PageCast 0832B2F537674B7AAA8A6D980C40C4AA,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_DynamicCast Name="PageCast"
+   TargetType=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"'
+   NodePosX=1250
+   NodePosY=0
+   NodeGuid=EAD1380DCE3A4BB0BD1BBFB341EBC5DA
+   CustomProperties Pin (PinId=BB7597A680AA4FB1939BBA32C3038524,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageLoad 67DB3E2EDB9544D3B6F012A771EF3649,),)
+   CustomProperties Pin (PinId=A25858A36E1D4D939EECCFEC8208D3EF,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageKeepLoaded 74CB2C28F6334E259991EA37939A7DF4,),)
+   CustomProperties Pin (PinId=2438250B004644F3B3800C998E3CB633,PinName="CastFailed",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=0832B2F537674B7AAA8A6D980C40C4AA,PinName="Object",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(PageLoad 2295B08740E1453AA86DCF54A70C365E,),)
+   CustomProperties Pin (PinId=6B9C5DDAE8524A549BE6861F946B8744,PinName="AsLucky Dice Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(PageKeepLoaded 065BCB236CFC4285A6E5D74F6D3B383D,),)
+   CustomProperties Pin (PinId=7C7A55BAAEF1416F9839632BEC241D90,PinName="bSuccess",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="PageNew"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="CreateSaveGameObject")
+   NodePosX=950
+   NodePosY=400
+   NodeGuid=C5B56F7B8F7B489D97D0C9A1A02B3C0C
+   CustomProperties Pin (PinId=487DE23818A8477AACDF9047D2AE2FED,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageBranch 4CA54FE55FF447868324203420A7AF62,),)
+   CustomProperties Pin (PinId=D680563B744546F5A84B8D7ED5D10D4A,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageNewCast 8C8582C613BE42A9A7BDF21B05E0FC86,),)
+   CustomProperties Pin (PinId=B601167FB79F4ABF92DF6CD1B2382E41,PinName="SaveGameClass",PinType.PinCategory="class",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',DefaultObject="/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C",)
+   CustomProperties Pin (PinId=A7C7ED51D4FB41C48364A8ADFD1F53E9,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(PageNewCast 8590863F63BD4AE7B08076F8D5F71DA2,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_DynamicCast Name="PageNewCast"
+   TargetType=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"'
+   NodePosX=1300
+   NodePosY=400
+   NodeGuid=10807C2A71874637937DAAE65F3F34C6
+   CustomProperties Pin (PinId=8C8582C613BE42A9A7BDF21B05E0FC86,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageNew D680563B744546F5A84B8D7ED5D10D4A,),)
+   CustomProperties Pin (PinId=DA49C325329346B8A782BDF90B700BCD,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(PageKeepNew 8E4BC9A536634F6A9E2AA59D6BEBE6D5,),)
+   CustomProperties Pin (PinId=C87E76AFF891411FB542E12B21C00527,PinName="CastFailed",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=8590863F63BD4AE7B08076F8D5F71DA2,PinName="Object",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(PageNew A7C7ED51D4FB41C48364A8ADFD1F53E9,),)
+   CustomProperties Pin (PinId=4B78F37F0DEF4ED19EC561C35B813CC8,PinName="AsLucky Dice Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(PageKeepNew 6A6DC1FCB3D749D794FAF738BE26846A,),)
+   CustomProperties Pin (PinId=D5E07A20F032466FABCDC350771C7B26,PinName="bSuccess",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="PageKeepLoaded"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=1650
+   NodePosY=0
+   NodeGuid=E24ECACEBE3943D1B0D5CC2083F59149
+   CustomProperties Pin (PinId=74CB2C28F6334E259991EA37939A7DF4,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageCast A25858A36E1D4D939EECCFEC8208D3EF,),)
+   CustomProperties Pin (PinId=811249FD779143E8BF559B2586723B3D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(FillDropChance 55E4B1D72EA34F15AB22167762CEA2DD,),)
+   CustomProperties Pin (PinId=065BCB236CFC4285A6E5D74F6D3B383D,PinName="Settings",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(PageCast 6B9C5DDAE8524A549BE6861F946B8744,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="PageKeepNew"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=1650
+   NodePosY=400
+   NodeGuid=11B04013EC8B42EBA619FFC62797DAEC
+   CustomProperties Pin (PinId=8E4BC9A536634F6A9E2AA59D6BEBE6D5,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageNewCast DA49C325329346B8A782BDF90B700BCD,),)
+   CustomProperties Pin (PinId=F136350C29374D2EAE35682550E8E6F4,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(FillDropChance 55E4B1D72EA34F15AB22167762CEA2DD,),)
+   CustomProperties Pin (PinId=6A6DC1FCB3D749D794FAF738BE26846A,PinName="Settings",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(PageNewCast 4B78F37F0DEF4ED19EC561C35B813CC8,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillDropChanceBox"
+   VariableReference=(MemberName="DropChanceBox",bSelfContext=True)
+   NodePosX=2000
+   NodePosY=250
+   NodeGuid=E5C9D10BA1194A73848CE6C5CB05D113
+   CustomProperties Pin (PinId=841B9B4FA2104346B4D6AE84A745D1F0,PinName="DropChanceBox",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/UMG.SpinBox"',LinkedTo=(FillDropChance 28EE03BDC1CC462E86316335C682A52F,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillDropChanceSettings"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=1850
+   NodePosY=380
+   NodeGuid=B2735D961DD04BD9BD3381188E241D6F
+   CustomProperties Pin (PinId=59D187EFD6D94385915F87C1A89C4A87,PinName="Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(FillDropChanceValue AA35C36F62AF40428F1B187F358E792A,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillDropChanceValue"
+   VariableReference=(MemberParent=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',MemberName="DropChance")
+   NodePosX=2000
+   NodePosY=380
+   NodeGuid=C00E4596B24F4BD0B945CDD75E8E01DE
+   CustomProperties Pin (PinId=93EA437C34E44E9A80C5FD9FC7F948C3,PinName="DropChance",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(FillDropChance 08F96CEDC65E4CDE9A109F8736D76FEB,),)
+   CustomProperties Pin (PinId=AA35C36F62AF40428F1B187F358E792A,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(FillDropChanceSettings 59D187EFD6D94385915F87C1A89C4A87,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="FillDropChance"
+   FunctionReference=(MemberParent=Class'"/Script/UMG.SpinBox"',MemberName="SetValue")
+   NodePosX=2000
+   NodePosY=0
+   NodeGuid=25B084FCF14449BC9FB7D7BD639A33B6
+   CustomProperties Pin (PinId=55E4B1D72EA34F15AB22167762CEA2DD,PinName="execute",PinType.PinCategory="exec",LinkedTo=(PageKeepLoaded 811249FD779143E8BF559B2586723B3D,PageKeepNew F136350C29374D2EAE35682550E8E6F4,),)
+   CustomProperties Pin (PinId=FA2A345B79654F1AA1203BDCABC10101,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(FillCooldown BCEFD84A9A914C4FB91E671FEB05BE63,),)
+   CustomProperties Pin (PinId=28EE03BDC1CC462E86316335C682A52F,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/UMG.SpinBox"',LinkedTo=(FillDropChanceBox 841B9B4FA2104346B4D6AE84A745D1F0,),)
+   CustomProperties Pin (PinId=08F96CEDC65E4CDE9A109F8736D76FEB,PinName="NewValue",PinType.PinCategory="float",LinkedTo=(FillDropChanceValue 93EA437C34E44E9A80C5FD9FC7F948C3,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_ComponentBoundEvent Name="ChangedDropChance"
+   DelegatePropertyName="OnValueCommitted"
+   DelegateOwnerClass=Class'"/Script/UMG.SpinBox"'
+   ComponentPropertyName="DropChanceBox"
+   EventReference=(MemberParent=Package'"/Script/UMG"',MemberName="OnSpinBoxValueCommittedEvent__DelegateSignature")
+   CustomFunctionName="BndEvt__DropChanceBox_K2Node_ComponentBoundEvent_0_OnSpinBoxValueCommittedEvent__DelegateSignature"
+   NodePosX=0
+   NodePosY=800
+   NodeGuid=747FECFC19244FA3B91C82145922BDBE
+   CustomProperties Pin (PinId=A98F55F8A76B4724835CA92CB881D6A1,PinName="OutputDelegate",Direction="EGPD_Output",PinType.PinCategory="delegate",)
+   CustomProperties Pin (PinId=D561DB57885643CEA56F0D1F45B5B019,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(StoreDropChance 0F463A590BE547F792D0316DFC1648BF,),)
+   CustomProperties Pin (PinId=727DADECF9364C719170C8EE1484330B,PinName="InValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(StoreDropChance D7555222FBC9458AA1A7FC3FF71E0FCF,),)
+   CustomProperties Pin (PinId=4919A8CA7A47434486AE23CCFA1E4248,PinName="CommitMethod",Direction="EGPD_Output",PinType.PinCategory="byte",PinType.PinSubCategoryObject=Enum'"/Script/SlateCore.ETextCommit"',)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="ChangedDropChanceSettings"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=300
+   NodePosY=1000
+   NodeGuid=73CE66A6EB3449408EB312B5624A0623
+   CustomProperties Pin (PinId=B43C7A7BE83744BE85B30CB1D6D4CE2D,PinName="Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(StoreDropChance 4B55571AAF6244C8B3805BC9F11DF3EA,SaveDropChance 7BE08648633B4B998434E3AD263626DA,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="StoreDropChance"
+   VariableReference=(MemberParent=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',MemberName="DropChance")
+   NodePosX=350
+   NodePosY=800
+   NodeGuid=BB69E37275D04BE886B9D7A5C1DA8603
+   CustomProperties Pin (PinId=0F463A590BE547F792D0316DFC1648BF,PinName="execute",PinType.PinCategory="exec",LinkedTo=(ChangedDropChance D561DB57885643CEA56F0D1F45B5B019,),)
+   CustomProperties Pin (PinId=3FE43786912144CEAA55DEB98FB16EA8,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(SaveDropChance 6CB87BE5FA9246238292A5032B5202DE,),)
+   CustomProperties Pin (PinId=D7555222FBC9458AA1A7FC3FF71E0FCF,PinName="DropChance",PinType.PinCategory="float",LinkedTo=(ChangedDropChance 727DADECF9364C719170C8EE1484330B,),)
+   CustomProperties Pin (PinId=4B55571AAF6244C8B3805BC9F11DF3EA,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(ChangedDropChanceSettings B43C7A7BE83744BE85B30CB1D6D4CE2D,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="SaveDropChance"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="SaveGameToSlot")
+   NodePosX=700
+   NodePosY=800
+   NodeGuid=959DF7C88AB044B8B5707D0999821CEA
+   CustomProperties Pin (PinId=6CB87BE5FA9246238292A5032B5202DE,PinName="execute",PinType.PinCategory="exec",LinkedTo=(StoreDropChance 3FE43786912144CEAA55DEB98FB16EA8,),)
+   CustomProperties Pin (PinId=5CC9EAFE365B48BE922DE1E425BEFA3D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=7BE08648633B4B998434E3AD263626DA,PinName="SaveGameObject",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(ChangedDropChanceSettings B43C7A7BE83744BE85B30CB1D6D4CE2D,),)
+   CustomProperties Pin (PinId=EF270906B6F44925A233A306E30B899F,PinName="SlotName",PinType.PinCategory="string",DefaultValue="LuckyDiceSettings",)
+   CustomProperties Pin (PinId=5D605E21DA334F8E80DBA22193813B4E,PinName="UserIndex",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=18DC54E20BAD475585EA9DF4B884A05A,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillCooldownBox"
+   VariableReference=(MemberName="CooldownBox",bSelfContext=True)
+   NodePosX=2400
+   NodePosY=250
+   NodeGuid=77216538DFCD4EB69D7C1708A0ED10E9
+   CustomProperties Pin (PinId=40CFD31B162A4A17AF5D2D1484D74342,PinName="CooldownBox",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/UMG.SpinBox"',LinkedTo=(FillCooldown 08D772F6320049E8B031B98374643FB5,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillCooldownSettings"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=2250
+   NodePosY=380
+   NodeGuid=91714B73208C4A8ABBDCC4F364E3AB5A
+   CustomProperties Pin (PinId=F59C770A44CD4124BC8E807D96AEDA25,PinName="Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(FillCooldownValue 8097559C5CBE4CF8A1414E7C9123CD19,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillCooldownValue"
+   VariableReference=(MemberParent=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',MemberName="Cooldown")
+   NodePosX=2400
+   NodePosY=380
+   NodeGuid=D6451942231D485BB8A9225CD0028590
+   CustomProperties Pin (PinId=26CB3867C760431BB7B6BA758650731E,PinName="Cooldown",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(FillCooldown 4CFEB2A1741F41CC925CDC9D0FC63AE5,),)
+   CustomProperties Pin (PinId=8097559C5CBE4CF8A1414E7C9123CD19,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(FillCooldownSettings F59C770A44CD4124BC8E807D96AEDA25,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="FillCooldown"
+   FunctionReference=(MemberParent=Class'"/Script/UMG.SpinBox"',MemberName="SetValue")
+   NodePosX=2400
+   NodePosY=0
+   NodeGuid=F20401D6842A4EA8823045E2C192D21F
+   CustomProperties Pin (PinId=BCEFD84A9A914C4FB91E671FEB05BE63,PinName="execute",PinType.PinCategory="exec",LinkedTo=(FillDropChance FA2A345B79654F1AA1203BDCABC10101,),)
+   CustomProperties Pin (PinId=12BF692A74FE42BA882A380E7D229711,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(FillForceEvent 831D0844DFF04A69A8A810B12F9A505D,),)
+   CustomProperties Pin (PinId=08D772F6320049E8B031B98374643FB5,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/UMG.SpinBox"',LinkedTo=(FillCooldownBox 40CFD31B162A4A17AF5D2D1484D74342,),)
+   CustomProperties Pin (PinId=4CFEB2A1741F41CC925CDC9D0FC63AE5,PinName="NewValue",PinType.PinCategory="float",LinkedTo=(FillCooldownValue 26CB3867C760431BB7B6BA758650731E,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_ComponentBoundEvent Name="ChangedCooldown"
+   DelegatePropertyName="OnValueCommitted"
+   DelegateOwnerClass=Class'"/Script/UMG.SpinBox"'
+   ComponentPropertyName="CooldownBox"
+   EventReference=(MemberParent=Package'"/Script/UMG"',MemberName="OnSpinBoxValueCommittedEvent__DelegateSignature")
+   CustomFunctionName="BndEvt__CooldownBox_K2Node_ComponentBoundEvent_1_OnSpinBoxValueCommittedEvent__DelegateSignature"
+   NodePosX=0
+   NodePosY=1200
+   NodeGuid=F9211FBE52D842C7AB32BC6E3C4A9455
+   CustomProperties Pin (PinId=1231BE0D79554AD4AE16DC271E3F25DB,PinName="OutputDelegate",Direction="EGPD_Output",PinType.PinCategory="delegate",)
+   CustomProperties Pin (PinId=7BF1FF795A874F37BFC271E7245D8866,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(StoreCooldown CDB433C0A77B4682A0703EC6BE71207A,),)
+   CustomProperties Pin (PinId=678CDEBA7D9A45D590ECC94E74756E54,PinName="InValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(StoreCooldown 159309B8516941D592E4DE2F5CCCC509,),)
+   CustomProperties Pin (PinId=79D837F067D2477EA6A9E0272DBCBC9D,PinName="CommitMethod",Direction="EGPD_Output",PinType.PinCategory="byte",PinType.PinSubCategoryObject=Enum'"/Script/SlateCore.ETextCommit"',)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="ChangedCooldownSettings"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=300
+   NodePosY=1400
+   NodeGuid=90F52F4C88144C269AA71E7F44ED3FA1
+   CustomProperties Pin (PinId=5DCAAEC7CAF84088BA0971EBA5C1344B,PinName="Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(StoreCooldown 4531718B13F54DE0ABE0BE5D2F47CC75,SaveCooldown B82A7982BF714F34811756676A5F2E36,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="StoreCooldown"
+   VariableReference=(MemberParent=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',MemberName="Cooldown")
+   NodePosX=350
+   NodePosY=1200
+   NodeGuid=15F91A9A416542389F74578B672E3CFE
+   CustomProperties Pin (PinId=CDB433C0A77B4682A0703EC6BE71207A,PinName="execute",PinType.PinCategory="exec",LinkedTo=(ChangedCooldown 7BF1FF795A874F37BFC271E7245D8866,),)
+   CustomProperties Pin (PinId=B321D44064D941DAAC90E5188AF42C2D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(SaveCooldown 73B6DA0AFF58438999758F135AD5AF5D,),)
+   CustomProperties Pin (PinId=159309B8516941D592E4DE2F5CCCC509,PinName="Cooldown",PinType.PinCategory="float",LinkedTo=(ChangedCooldown 678CDEBA7D9A45D590ECC94E74756E54,),)
+   CustomProperties Pin (PinId=4531718B13F54DE0ABE0BE5D2F47CC75,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(ChangedCooldownSettings 5DCAAEC7CAF84088BA0971EBA5C1344B,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="SaveCooldown"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="SaveGameToSlot")
+   NodePosX=700
+   NodePosY=1200
+   NodeGuid=8E74B8C696974B959E66F74E36A9BAD3
+   CustomProperties Pin (PinId=73B6DA0AFF58438999758F135AD5AF5D,PinName="execute",PinType.PinCategory="exec",LinkedTo=(StoreCooldown B321D44064D941DAAC90E5188AF42C2D,),)
+   CustomProperties Pin (PinId=33674AD1C25B4E3495BA3952FBF5B5F5,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=B82A7982BF714F34811756676A5F2E36,PinName="SaveGameObject",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(ChangedCooldownSettings 5DCAAEC7CAF84088BA0971EBA5C1344B,),)
+   CustomProperties Pin (PinId=27E3A9245286481BAE9FDFC0E37ABFC4,PinName="SlotName",PinType.PinCategory="string",DefaultValue="LuckyDiceSettings",)
+   CustomProperties Pin (PinId=CD55226B7CEC4727A29CA51FE2E8B2F9,PinName="UserIndex",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=70D8FED386074BA78CBEB239C1EABA97,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillForceEventBox"
+   VariableReference=(MemberName="ForceEventBox",bSelfContext=True)
+   NodePosX=2800
+   NodePosY=250
+   NodeGuid=B9C403C9B9B34DD185ED74EA0CC379E2
+   CustomProperties Pin (PinId=6C0A932A35BC42E0B347D3BD91FA28F8,PinName="ForceEventBox",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/UMG.SpinBox"',LinkedTo=(FillForceEvent 724456D6A27B476EBC73B8213986B274,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillForceEventSettings"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=2650
+   NodePosY=380
+   NodeGuid=20322957DF3F4461978BBCF5A18C757C
+   CustomProperties Pin (PinId=8F4F6996D2D749DAB41C25E813215A31,PinName="Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(FillForceEventValue 6377B8F4CF844F3C969DFC7FFA92427A,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="FillForceEventValue"
+   VariableReference=(MemberParent=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',MemberName="ForceEvent")
+   NodePosX=2800
+   NodePosY=380
+   NodeGuid=F40ABC05C4264114BBF8E8571E97DD58
+   CustomProperties Pin (PinId=DE431597D4C246FFA68FFF4CC7A5B33C,PinName="ForceEvent",Direction="EGPD_Output",PinType.PinCategory="int",LinkedTo=(FillForceEventFloat 8F1B944E2DDB436DB51FDE16A776FAD1,),)
+   CustomProperties Pin (PinId=6377B8F4CF844F3C969DFC7FFA92427A,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(FillForceEventSettings 8F4F6996D2D749DAB41C25E813215A31,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="FillForceEvent"
+   FunctionReference=(MemberParent=Class'"/Script/UMG.SpinBox"',MemberName="SetValue")
+   NodePosX=2800
+   NodePosY=0
+   NodeGuid=839C2DFC6656496E93712050D1DEDF6A
+   CustomProperties Pin (PinId=831D0844DFF04A69A8A810B12F9A505D,PinName="execute",PinType.PinCategory="exec",LinkedTo=(FillCooldown 12BF692A74FE42BA882A380E7D229711,),)
+   CustomProperties Pin (PinId=8CB4981F31F1411C86A480E176F432CA,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=724456D6A27B476EBC73B8213986B274,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/UMG.SpinBox"',LinkedTo=(FillForceEventBox 6C0A932A35BC42E0B347D3BD91FA28F8,),)
+   CustomProperties Pin (PinId=A3B0A002CF6F4B67AA838E7C261515F1,PinName="NewValue",PinType.PinCategory="float",LinkedTo=(FillForceEventFloat BFB61849DA794040983B6135B2CAEC07,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="FillForceEventFloat"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Conv_IntToFloat")
+   NodePosX=3000
+   NodePosY=380
+   NodeGuid=D8436CE8A8C349B1B9D4B2736FCBF692
+   CustomProperties Pin (PinId=8F1B944E2DDB436DB51FDE16A776FAD1,PinName="InInt",PinType.PinCategory="int",LinkedTo=(FillForceEventValue DE431597D4C246FFA68FFF4CC7A5B33C,),)
+   CustomProperties Pin (PinId=BFB61849DA794040983B6135B2CAEC07,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(FillForceEvent A3B0A002CF6F4B67AA838E7C261515F1,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_ComponentBoundEvent Name="ChangedForceEvent"
+   DelegatePropertyName="OnValueCommitted"
+   DelegateOwnerClass=Class'"/Script/UMG.SpinBox"'
+   ComponentPropertyName="ForceEventBox"
+   EventReference=(MemberParent=Package'"/Script/UMG"',MemberName="OnSpinBoxValueCommittedEvent__DelegateSignature")
+   CustomFunctionName="BndEvt__ForceEventBox_K2Node_ComponentBoundEvent_2_OnSpinBoxValueCommittedEvent__DelegateSignature"
+   NodePosX=0
+   NodePosY=1600
+   NodeGuid=188D8B2B03E9408B9A942327751D2E3B
+   CustomProperties Pin (PinId=A01137DCAF9D49238F762711483CDF18,PinName="OutputDelegate",Direction="EGPD_Output",PinType.PinCategory="delegate",)
+   CustomProperties Pin (PinId=A6C2E112829643658F7258AEDCAF2F29,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(StoreForceEvent 783662C4A9DB42F3A109CE04326E9D0E,),)
+   CustomProperties Pin (PinId=9E5E87ACA81648F5B27A585F2687BA8F,PinName="InValue",Direction="EGPD_Output",PinType.PinCategory="float",LinkedTo=(ChangedForceEventRound 15DA780D56814BA9B9B27418BE23C66E,),)
+   CustomProperties Pin (PinId=A72D5CE631AC46E1AF668FD0BE81F4AC,PinName="CommitMethod",Direction="EGPD_Output",PinType.PinCategory="byte",PinType.PinSubCategoryObject=Enum'"/Script/SlateCore.ETextCommit"',)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="ChangedForceEventSettings"
+   VariableReference=(MemberName="Settings",bSelfContext=True)
+   NodePosX=300
+   NodePosY=1800
+   NodeGuid=E5B2680AA88443CCAEFCD6A152C509C3
+   CustomProperties Pin (PinId=194A144045A94EF080901F2A8E64215F,PinName="Settings",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(StoreForceEvent A21655693EF846C8967F0EAAD5AB4EA3,SaveForceEvent 13D880F7391A4CC1A3858D833E548342,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="StoreForceEvent"
+   VariableReference=(MemberParent=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',MemberName="ForceEvent")
+   NodePosX=350
+   NodePosY=1600
+   NodeGuid=21C5EAB3EF5240DFAE2FA1A06A626090
+   CustomProperties Pin (PinId=783662C4A9DB42F3A109CE04326E9D0E,PinName="execute",PinType.PinCategory="exec",LinkedTo=(ChangedForceEvent A6C2E112829643658F7258AEDCAF2F29,),)
+   CustomProperties Pin (PinId=AEA229C399CC48E2A1300B209931ADF4,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",LinkedTo=(SaveForceEvent 250BCED0D0C745859E7FB68CE57C9DDA,),)
+   CustomProperties Pin (PinId=B04050CBF9C04105AF855996958774BB,PinName="ForceEvent",PinType.PinCategory="int",LinkedTo=(ChangedForceEventRound F87CF5F93C1942B991D743EF36F660E1,),)
+   CustomProperties Pin (PinId=A21655693EF846C8967F0EAAD5AB4EA3,PinName="self",PinType.PinCategory="object",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"',LinkedTo=(ChangedForceEventSettings 194A144045A94EF080901F2A8E64215F,),)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="SaveForceEvent"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="SaveGameToSlot")
+   NodePosX=700
+   NodePosY=1600
+   NodeGuid=B48EADD47A2E49A8A5AB045177913B0A
+   CustomProperties Pin (PinId=250BCED0D0C745859E7FB68CE57C9DDA,PinName="execute",PinType.PinCategory="exec",LinkedTo=(StoreForceEvent AEA229C399CC48E2A1300B209931ADF4,),)
+   CustomProperties Pin (PinId=34B055D1EF7C4404A98878AB29EE567D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",)
+   CustomProperties Pin (PinId=13D880F7391A4CC1A3858D833E548342,PinName="SaveGameObject",PinType.PinCategory="object",PinType.PinSubCategoryObject=Class'"/Script/Engine.SaveGame"',LinkedTo=(ChangedForceEventSettings 194A144045A94EF080901F2A8E64215F,),)
+   CustomProperties Pin (PinId=346D4A16E4B34B01A0E69591A26AE5F1,PinName="SlotName",PinType.PinCategory="string",DefaultValue="LuckyDiceSettings",)
+   CustomProperties Pin (PinId=758130322EEC47629F80DDB7D408C207,PinName="UserIndex",PinType.PinCategory="int",DefaultValue="0",)
+   CustomProperties Pin (PinId=D6175AD2EA0D4E2F9DF17EA13C5A1030,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="bool",)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="ChangedForceEventRound"
+   FunctionReference=(MemberParent=Class'"/Script/Engine.KismetMathLibrary"',MemberName="Round")
+   NodePosX=200
+   NodePosY=1900
+   NodeGuid=1683041F65304190A4B1D045EF826172
+   CustomProperties Pin (PinId=15DA780D56814BA9B9B27418BE23C66E,PinName="A",PinType.PinCategory="float",LinkedTo=(ChangedForceEvent 9E5E87ACA81648F5B27A585F2687BA8F,),)
+   CustomProperties Pin (PinId=F87CF5F93C1942B991D743EF36F660E1,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="int",LinkedTo=(StoreForceEvent B04050CBF9C04105AF855996958774BB,),)
+End Object

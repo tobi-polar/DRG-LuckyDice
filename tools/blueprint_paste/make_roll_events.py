@@ -4,6 +4,25 @@ Usage: python make_roll_events.py <output.txt> --events | --logic | --reload-onl
 
 --curve-clear writes just the node that empties RapidFireCurves.
 
+--settings-loader writes the start of BP_DiceManager's BeginPlay, which copies saved ModHub
+settings over the defaults. --settings-widget writes WBP_LuckyDiceSettings' event graph.
+
+--debug-readout writes a loop for BP_DiceManager that posts changes in the host's health
+and shield to chat, with whether Fortify and Regen are active. It needs the Boolean
+DebugReadout (default on) and the Float DebugLastHealth.
+
+--fortify-heal writes just Fortify's heal loop, which needs the Integer FortifyHealsLeft.
+Connect the FORTIFY! message to it.
+
+--unfreeze-only writes just the pass that unfreezes every enemy when Freeze All ends.
+Connect the False of the Branch after FreezeTicksLeft counts down to it.
+
+--freeze-only writes just the Freeze All box, which needs the Integer FreezeTicksLeft.
+Connect the Fortify check's False to its Branch, and raise the Max on Random Integer In Range to 5.
+
+--fortify-only writes just the Fortify box. Connect the Rapid Fire check's False to its
+Branch, and raise the Max on Random Integer In Range to 4.
+
 --reload-only writes just the DiceReloadAll event, to replace one that pasted with
 the wrong name. Delete the old one and compile before pasting, so the name is free.
 
@@ -18,7 +37,7 @@ RapidFireCryos (Cryospray Item array), RapidFireDrills (Double Drill Item array)
 RapidFireDrillCurves (Curve Float array) and NoHeatCurve (Curve Float), whose default
 must be set to the flat CF_Dice_NoHeat asset.
 ForceEvent picks the event
-for testing: 0 Max Ammo, 1 Speed Boost, 2 Nuke, 3 Rapid Fire. Any negative value
+for testing: 0 Max Ammo, 1 Speed Boost, 2 Nuke, 3 Rapid Fire, 4 Fortify, 5 Freeze All. Any negative value
 rolls at random. Each event sits in its own comment box.
 
 Paste in two parts, because a call pasted together with its event comes through broken:
@@ -46,14 +65,27 @@ CURVE = "/Script/Engine.CurveFloat"
 CANNON = "/Script/FSD.AutoCannon"
 CRYO = "/Script/FSD.CryosprayItem"
 DRILL = "/Script/FSD.DoubleDrillItem"
+SETTINGS = "/Game/LuckyDice/LuckyDiceSettings.LuckyDiceSettings_C"
+SETTINGS_SLOT = "LuckyDiceSettings"
+SPINBOX = "/Script/UMG.SpinBox"
+STRING = "/Script/Engine.KismetStringLibrary"
 TYPES = {
+    "character": ("object", "Class'\"/Script/Engine.Character\"'", None),
+    "playerchar": ("object", f"Class'\"{PLAYER}\"'", None),
+    "playerhealth": ("object", "Class'\"/Script/FSD.PlayerHealthComponent\"'", None),
+    "status": ("object", "Class'\"/Script/FSD.StatusEffectsComponent\"'", None),
+    "settings": ("object", f"BlueprintGeneratedClass'\"{SETTINGS}\"'", None),
+    "savegame": ("object", "Class'\"/Script/Engine.SaveGame\"'", None),
+    "savegameclass": ("class", "Class'\"/Script/Engine.SaveGame\"'", None),
+    "spinbox": ("object", f"Class'\"{SPINBOX}\"'", None),
+    "textcommit": ("byte", "Enum'\"/Script/SlateCore.ETextCommit\"'", None),
     "drill": ("object", f"Class'\"{DRILL}\"'", None), "drills": ("object", f"Class'\"{DRILL}\"'", "Array"),
     "cryo": ("object", f"Class'\"{CRYO}\"'", None), "cryos": ("object", f"Class'\"{CRYO}\"'", "Array"),
     "cannon": ("object", f"Class'\"{CANNON}\"'", None), "cannons": ("object", f"Class'\"{CANNON}\"'", "Array"),
     "floats": ("float", None, "Array"),
     "curve": ("object", f"Class'\"{CURVE}\"'", None), "curves": ("object", f"Class'\"{CURVE}\"'", "Array"),
     "item": ("object", f"Class'\"{ITEM}\"'", None),
-    "pawn": ("object", f"Class'\"{PAWN}\"'", None), "pawns": ("object", f"Class'\"{PAWN}\"'", "Array"),
+    "pawn": ("object", f"Class'\"{PAWN}\"'", None), "fsdpawn": ("object", "Class'\"/Script/FSD.FSDPawn\"'", None), "pawns": ("object", f"Class'\"{PAWN}\"'", "Array"),
     "pawnclass": ("class", f"Class'\"{PAWN}\"'", None),
     "health": ("object", f"Class'\"{HEALTH}\"'", None),
     "gamemode": ("object", f"Class'\"{GAME_MODE}\"'", None),
@@ -72,7 +104,9 @@ TYPES = {
     "weapon": ("object", f"Class'\"{WEAPON}\"'", None), "weapons": ("object", f"Class'\"{WEAPON}\"'", "Array"),
     "sentry": ("object", f"Class'\"{SENTRY}\"'", None), "sentries": ("object", f"Class'\"{SENTRY}\"'", "Array"),
 }
-OBJECTS = {"actor", "self", "state", "component", "inventory", "weapon", "sentry", "pawn", "health", "item", "cannon", "cryo", "drill"}
+OBJECTS = {"fsdpawn", "actor", "self", "state", "component", "inventory", "weapon", "sentry", "pawn", "health", "item", "cannon", "cryo", "drill", "settings", "savegame", "spinbox",
+           "character", "playerchar", "playerhealth", "status"}
+SETTING_FIELDS = (("DropChance", "float"), ("Cooldown", "float"), ("ForceEvent", "int"))
 MATH = "/Script/Engine.KismetMathLibrary"
 LIBRARY = "/Script/FSD.GameFunctionLibrary"
 STATUS = "/Script/FSD.StatusEffectsComponent"
@@ -84,6 +118,9 @@ RAPID_SECONDS = "15.0"
 COOLING_SECONDS = "0.1"
 NO_HEAT_SCALE = "0.001"  # Scaled rather than zeroed, so dividing puts the original value back.
 FAST_COOLING_SCALE = "1000.0"
+FORTIFY_HEALS = "30"  # Once a second, so 30 s, matching STE_Dice_Fortify's Duration.
+FORTIFY_HEAL_SHARE = "0.02"  # Of max health each second, so up to 60% over the whole effect.
+PLAYER_HEALTH = "/Script/FSD.PlayerHealthComponent"
 EVENT_X = 600  # Where each event's nodes start, to the right of the Branches that pick the event.
 NODES = {}
 
@@ -197,7 +234,7 @@ def build_choice():
     NODES["IsForced"].body = 'NodeComment="CONNECT RollDice HERE"\n   bCommentBubbleVisible=True\n   bCommentBubblePinned=True'
     var_get("GetForceB", -800, 150, "ForceEvent", "int")
     var_set("SetForced", -600, 0, "EventId", "int")
-    call("RandomEvent", -900, 350, "RandomIntegerInRange", MATH).pin("Min", "int", False, "0").pin("Max", "int", False, "3") \
+    call("RandomEvent", -900, 350, "RandomIntegerInRange", MATH).pin("Min", "int", False, "0").pin("Max", "int", False, "5") \
         .pin("ReturnValue", "int", True)
     var_set("SetRandom", -600, 250, "EventId", "int")
     wire_up([
@@ -339,13 +376,296 @@ def build_rapid(y):
     wire_up(["RapidBranch.then>CallRapid.execute", "CallRapid.then>RapidMsg.execute", "RapidState.ReturnValue>RapidMsg.self"])
 
 
+def build_fortify_heal(x, y):
+    """Heal every living player by FORTIFY_HEAL_SHARE of their max health once a second, FORTIFY_HEALS times.
+    HealingStatusEffectItem didn't heal at all in testing, so this calls Heal directly. A second roll resets the count."""
+    var_set("HealCount", x, y, "FortifyHealsLeft", "int", FORTIFY_HEALS)
+    call("HealWait", x + 300, y, "Delay", SYSTEM).pin("execute", "exec").pin("then", "exec", True).pin("Duration", "float", False, "1.0")
+    all_actors("HealPlayers", x + 600, y, PLAYER, "actors")
+    loop("HealLoop", x + 950, y, ACTOR, "actors", "actor")
+    find_component("HealFind", x + 1300, y, PLAYER_HEALTH)
+    Node("HealCast", "K2Node_DynamicCast", x + 1650, y, f"TargetType=Class'\"{PLAYER_HEALTH}\"'").pin("execute", "exec") \
+        .pin("then", "exec", True).pin("CastFailed", "exec", True).pin("Object", "component") \
+        .pin("AsPlayer Health Component", "playerhealth", True).pin("bSuccess", "bool", True)
+    call("HealAlive", x + 1650, y + 250, "IsAlive", HEALTH).pin("self", "health").pin("ReturnValue", "bool", True)
+    branch("HealIfAlive", x + 2000, y)
+    # Read the MaxHealth property instead of calling GetMaxHealth, which crashes the game from Blueprint.
+    Node("HealMax", "K2Node_VariableGet", x + 2000, y + 250, f"VariableReference=(MemberParent=Class'\"{PLAYER_HEALTH}\"',MemberName=\"MaxHealth\")") \
+        .pin("MaxHealth", "float", True).pin("self", "playerhealth")
+    call("HealShare", x + 2250, y + 250, "Multiply_FloatFloat", MATH).pin("A", "float").pin("B", "float", False, FORTIFY_HEAL_SHARE) \
+        .pin("ReturnValue", "float", True)
+    call("HealNow", x + 2300, y, "Heal", HEALTH).pin("execute", "exec").pin("then", "exec", True).pin("self", "health") \
+        .pin("amount", "float").pin("ReturnValue", "float", True)
+    var_get("HealLeftA", x + 950, y + 450, "FortifyHealsLeft", "int")
+    call("HealMinusOne", x + 1150, y + 450, "Subtract_IntInt", MATH).pin("A", "int").pin("B", "int", False, "1").pin("ReturnValue", "int", True)
+    var_set("HealCountDown", x + 1300, y + 400, "FortifyHealsLeft", "int")
+    var_get("HealLeftB", x + 1550, y + 550, "FortifyHealsLeft", "int")
+    call("HealMore", x + 1750, y + 550, "Greater_IntInt", MATH).pin("A", "int").pin("B", "int", False, "0").pin("ReturnValue", "bool", True)
+    branch("HealAgain", x + 1650, y + 400)
+    wire_up([
+        "HealCount.then>HealWait.execute", "HealWait.then>HealPlayers.execute", "HealPlayers.then>HealLoop.Exec",
+        "HealPlayers.OutActors>HealLoop.Array", "HealLoop.LoopBody>HealFind.execute", "HealLoop.Array Element>HealFind.self",
+        "HealFind.then>HealCast.execute", "HealFind.ReturnValue>HealCast.Object", "HealCast.then>HealIfAlive.execute",
+        "HealCast.AsPlayer Health Component>HealAlive.self", "HealAlive.ReturnValue>HealIfAlive.Condition",
+        "HealIfAlive.then>HealNow.execute", "HealCast.AsPlayer Health Component>HealNow.self",
+        "HealCast.AsPlayer Health Component>HealMax.self", "HealMax.MaxHealth>HealShare.A", "HealShare.ReturnValue>HealNow.amount",
+        "HealLoop.Completed>HealCountDown.execute", "HealLeftA.FortifyHealsLeft>HealMinusOne.A", "HealMinusOne.ReturnValue>HealCountDown.FortifyHealsLeft",
+        "HealCountDown.then>HealAgain.execute", "HealLeftB.FortifyHealsLeft>HealMore.A", "HealMore.ReturnValue>HealAgain.Condition",
+        "HealAgain.then>HealWait.execute",
+    ])
+
+
+def build_fortify(y):
+    """Less damage and faster shields from STE_Dice_Fortify, plus a heal each second from build_fortify_heal."""
+    x = EVENT_X
+    box("BoxFortify", "Fortify", x - 50, y - 80, 4000, 1100, (0.1, 0.5, 0.5))
+    event_check("Fortify", y, 4)
+    all_actors("FortifyPlayers", x, y, PLAYER, "actors")
+    loop("FortifyLoop", x + 350, y, ACTOR, "actors", "actor")
+    Node("FortifySelf", "K2Node_Self", x + 500, y + 250).pin("self", "self", True)
+    call("GiveFortify", x + 750, y, "TryPushActiveStatusEffect", STATUS).pin("execute", "exec").pin("then", "exec", True) \
+        .pin("StatusEffect", "effect", False, None, "/Game/LuckyDice/STE_Dice_Fortify.STE_Dice_Fortify_C") \
+        .pin("Target", "actor").pin("Owner", "actor")
+    call("FortifyState", x + 500, y + 400, "GetFSDGameState", LIBRARY).pin("ReturnValue", "state", True)
+    message("FortifyMsg", x + 750, y + 300, "Lucky Dice: FORTIFY!")
+    build_fortify_heal(x + 1100, y + 300)
+    wire_up([
+        "FortifyBranch.then>FortifyPlayers.execute", "FortifyPlayers.then>FortifyLoop.Exec", "FortifyPlayers.OutActors>FortifyLoop.Array",
+        "FortifyLoop.LoopBody>GiveFortify.execute", "FortifyLoop.Array Element>GiveFortify.Target", "FortifySelf.self>GiveFortify.Owner",
+        "FortifyLoop.Completed>FortifyMsg.execute", "FortifyState.ReturnValue>FortifyMsg.self", "FortifyMsg.then>HealCount.execute",
+    ])
+
+
+FSD_PAWN = "/Script/FSD.FSDPawn"
+FREEZE_TICKS = "10"  # Once a second, so enemies stay frozen for about 10 s, including new spawns.
+
+
+def freeze_pass(prefix, x, y, swarmers, thaw=False, manager="FreezeManager"):
+    """Save one enemy list, then freeze each enemy in it, or unfreeze it with thaw."""
+    call(f"{prefix}Find", x, y + 200, "FindEnemiesByClass", SPAWN_MANAGER).pin("self", "spawnmanager")         .pin("PawnClass", "pawnclass", False, None, PAWN).pin("isSwarmerEnemy", "bool", False, swarmers).pin("ReturnValue", "pawns", True)
+    var_set(f"{prefix}Save", x + 350, y, "NukeTargets", "pawns")
+    var_get(f"{prefix}List", x + 350, y + 200, "NukeTargets", "pawns")
+    loop(f"{prefix}Loop", x + 650, y, f"Class'\"{PAWN}\"'", "pawns", "pawn")
+    Node(f"{prefix}Cast", "K2Node_DynamicCast", x + 1000, y, f"TargetType=Class'\"{FSD_PAWN}\"'").pin("execute", "exec")         .pin("then", "exec", True).pin("CastFailed", "exec", True).pin("Object", "pawn")         .pin("AsFSDPawn", "fsdpawn", True).pin("bSuccess", "bool", True)
+    call(f"{prefix}Freeze", x + 1350, y, "UnFreeze" if thaw else "Freeze", FSD_PAWN).pin("execute", "exec").pin("then", "exec", True)         .pin("self", "fsdpawn")
+    if not thaw:
+        NODES[f"{prefix}Freeze"].pin("Source", "actor")
+    p = prefix
+    wire_up([
+        f"{manager}.EnemySpawnManager>{p}Find.self", f"{p}Find.ReturnValue>{p}Save.NukeTargets", f"{p}Save.then>{p}Loop.Exec",
+        f"{p}List.NukeTargets>{p}Loop.Array", f"{p}Loop.LoopBody>{p}Cast.execute", f"{p}Loop.Array Element>{p}Cast.Object",
+        f"{p}Cast.then>{p}Freeze.execute", f"{p}Cast.AsFSDPawn>{p}Freeze.self",
+    ])
+    if not thaw:
+        wire_up([f"FreezeSelf.self>{p}Freeze.Source"])
+
+
+def build_unfreeze(x, y):
+    """Unfreeze every enemy. Freeze holds enemies frozen for good, so the effect has to end it."""
+    call("ThawGameMode", x, y + 550, "GetFSDGameMode", LIBRARY).pin("ReturnValue", "gamemode", True)
+    Node("ThawManager", "K2Node_VariableGet", x, y + 400, f"VariableReference=(MemberParent=Class'\"{GAME_MODE}\"',MemberName=\"EnemySpawnManager\")")         .pin("EnemySpawnManager", "spawnmanager", True).pin("self", "gamemode")
+    freeze_pass("ThawRegular", x + 300, y, "false", True, "ThawManager")
+    freeze_pass("ThawSwarm", x + 300, y + 600, "true", True, "ThawManager")
+    wire_up(["ThawGameMode.ReturnValue>ThawManager.self", "ThawRegularLoop.Completed>ThawSwarmSave.execute"])
+
+
+def build_freeze(y):
+    """Freeze every enemy once a second, FREEZE_TICKS times. Reuses NukeTargets as a scratch list.
+    Needs the Integer variable FreezeTicksLeft. A second roll resets the count."""
+    x = EVENT_X
+    box("BoxFreeze", "Freeze All", x - 50, y - 80, 3300, 2900, (0.15, 0.4, 0.8))
+    event_check("Freeze", y, 5)
+    call("FreezeState", x, y + 170, "GetFSDGameState", LIBRARY).pin("ReturnValue", "state", True)
+    message("FreezeMsg", x + 250, y, "Lucky Dice: FREEZE ALL!")
+    var_set("FreezeCount", x + 600, y, "FreezeTicksLeft", "int", FREEZE_TICKS)
+    call("FreezeGameMode", x + 600, y + 550, "GetFSDGameMode", LIBRARY).pin("ReturnValue", "gamemode", True)
+    Node("FreezeManager", "K2Node_VariableGet", x + 600, y + 400, f"VariableReference=(MemberParent=Class'\"{GAME_MODE}\"',MemberName=\"EnemySpawnManager\")")         .pin("EnemySpawnManager", "spawnmanager", True).pin("self", "gamemode")
+    Node("FreezeSelf", "K2Node_Self", x + 2100, y + 300).pin("self", "self", True)
+    freeze_pass("FreezeRegular", x + 900, y, "false")
+    freeze_pass("FreezeSwarm", x + 900, y + 600, "true")
+    var_get("FreezeLeftA", x + 900, y + 1250, "FreezeTicksLeft", "int")
+    call("FreezeMinusOne", x + 1100, y + 1250, "Subtract_IntInt", MATH).pin("A", "int").pin("B", "int", False, "1").pin("ReturnValue", "int", True)
+    var_set("FreezeCountDown", x + 1350, y + 1150, "FreezeTicksLeft", "int")
+    var_get("FreezeLeftB", x + 1600, y + 1300, "FreezeTicksLeft", "int")
+    call("FreezeMore", x + 1800, y + 1300, "Greater_IntInt", MATH).pin("A", "int").pin("B", "int", False, "0").pin("ReturnValue", "bool", True)
+    branch("FreezeAgain", x + 1700, y + 1150)
+    call("FreezeWait", x + 2050, y + 1150, "Delay", SYSTEM).pin("execute", "exec").pin("then", "exec", True).pin("Duration", "float", False, "1.0")
+    wire_up([
+        "FreezeBranch.then>FreezeMsg.execute", "FreezeState.ReturnValue>FreezeMsg.self", "FreezeMsg.then>FreezeCount.execute",
+        "FreezeGameMode.ReturnValue>FreezeManager.self", "FreezeCount.then>FreezeRegularSave.execute",
+        "FreezeRegularLoop.Completed>FreezeSwarmSave.execute", "FreezeSwarmLoop.Completed>FreezeCountDown.execute",
+        "FreezeLeftA.FreezeTicksLeft>FreezeMinusOne.A", "FreezeMinusOne.ReturnValue>FreezeCountDown.FreezeTicksLeft",
+        "FreezeCountDown.then>FreezeAgain.execute", "FreezeLeftB.FreezeTicksLeft>FreezeMore.A", "FreezeMore.ReturnValue>FreezeAgain.Condition",
+        "FreezeAgain.then>FreezeWait.execute", "FreezeWait.then>FreezeRegularSave.execute",
+    ])
+    build_unfreeze(x, y + 1700)
+    wire_up(["FreezeAgain.else>ThawRegularSave.execute"])
+
+
+def settings_member(cls, name, x, y, field):
+    return Node(name, cls, x, y, f"VariableReference=(MemberParent=BlueprintGeneratedClass'\"{SETTINGS}\"',MemberName=\"{field}\")")
+
+
+def load_slot(prefix, x, y):
+    """Does the save exist? If so, load it and cast it to our settings class."""
+    # Not a pure node in 4.27, so it has to run in the chain or its result is never read.
+    call(f"{prefix}Exists", x - 50, y, "DoesSaveGameExist", GAMEPLAY).pin("execute", "exec").pin("then", "exec", True) \
+        .pin("SlotName", "string", False, SETTINGS_SLOT).pin("UserIndex", "int", False, "0").pin("ReturnValue", "bool", True)
+    branch(f"{prefix}Branch", x + 300, y)
+    call(f"{prefix}Load", x + 600, y, "LoadGameFromSlot", GAMEPLAY).pin("execute", "exec").pin("then", "exec", True) \
+        .pin("SlotName", "string", False, SETTINGS_SLOT).pin("UserIndex", "int", False, "0").pin("ReturnValue", "savegame", True)
+    Node(f"{prefix}Cast", "K2Node_DynamicCast", x + 950, y, f"TargetType=BlueprintGeneratedClass'\"{SETTINGS}\"'").pin("execute", "exec") \
+        .pin("then", "exec", True).pin("CastFailed", "exec", True).pin("Object", "savegame") \
+        .pin("AsLucky Dice Settings", "settings", True).pin("bSuccess", "bool", True)
+    wire_up([
+        f"{prefix}Exists.then>{prefix}Branch.execute", f"{prefix}Exists.ReturnValue>{prefix}Branch.Condition", f"{prefix}Branch.then>{prefix}Load.execute",
+        f"{prefix}Load.then>{prefix}Cast.execute", f"{prefix}Load.ReturnValue>{prefix}Cast.Object",
+    ])
+
+
+def build_settings_loader():
+    """For BP_DiceManager's BeginPlay: copy any saved settings over the defaults, then carry on as before."""
+    Node("LoadSequence", "K2Node_ExecutionSequence", 0, 0, 'NodeComment="CONNECT Event BeginPlay HERE"\n   bCommentBubbleVisible=True\n   bCommentBubblePinned=True') \
+        .pin("execute", "exec").pin("then_0", "exec", True).pin("then_1", "exec", True)
+    load_slot("Saved", 300, 0)
+    previous = "SavedCast.then"
+    for i, (field, kind) in enumerate(SETTING_FIELDS):
+        settings_member("K2Node_VariableGet", f"Saved{field}", 1300 + i * 350, 220, field).pin(field, kind, True).pin("self", "settings")
+        var_set(f"Use{field}", 1300 + i * 350, 0, field, kind)
+        wire_up([f"{previous}>Use{field}.execute", f"SavedCast.AsLucky Dice Settings>Saved{field}.self", f"Saved{field}.{field}>Use{field}.{field}"])
+        previous = f"Use{field}.then"
+    # Then 1 is left free, for the nodes BeginPlay used to run.
+    wire_up(["LoadSequence.then_0>SavedExists.execute"])
+
+
+def build_settings_widget():
+    """Event graph for WBP_LuckyDiceSettings: fill the boxes from the save, and save whenever a box changes."""
+    Node("PageConstruct", "K2Node_Event", 0, 0, "EventReference=(MemberParent=Class'\"/Script/UMG.UserWidget\"',MemberName=\"Construct\")\n   bOverrideFunction=True") \
+        .pin("OutputDelegate", "delegate", True).pin("then", "exec", True)
+    load_slot("Page", 300, 0)
+    call("PageNew", 950, 400, "CreateSaveGameObject", GAMEPLAY).pin("execute", "exec").pin("then", "exec", True) \
+        .pin("SaveGameClass", "savegameclass", False, None, SETTINGS).pin("ReturnValue", "savegame", True)
+    Node("PageNewCast", "K2Node_DynamicCast", 1300, 400, f"TargetType=BlueprintGeneratedClass'\"{SETTINGS}\"'").pin("execute", "exec") \
+        .pin("then", "exec", True).pin("CastFailed", "exec", True).pin("Object", "savegame") \
+        .pin("AsLucky Dice Settings", "settings", True).pin("bSuccess", "bool", True)
+    var_set("PageKeepLoaded", 1650, 0, "Settings", "settings")
+    var_set("PageKeepNew", 1650, 400, "Settings", "settings")
+    wire_up([
+        "PageConstruct.then>PageExists.execute", "PageBranch.else>PageNew.execute", "PageNew.then>PageNewCast.execute",
+        "PageNew.ReturnValue>PageNewCast.Object", "PageCast.then>PageKeepLoaded.execute", "PageCast.AsLucky Dice Settings>PageKeepLoaded.Settings",
+        "PageNewCast.then>PageKeepNew.execute", "PageNewCast.AsLucky Dice Settings>PageKeepNew.Settings",
+    ])
+    previous = ["PageKeepLoaded.then", "PageKeepNew.then"]
+    for i, (field, kind) in enumerate(SETTING_FIELDS):
+        x, box_name = 2000 + i * 400, f"{field}Box"
+        var_get(f"Fill{field}Box", x, 250, box_name, "spinbox")
+        var_get(f"Fill{field}Settings", x - 150, 380, "Settings", "settings")
+        settings_member("K2Node_VariableGet", f"Fill{field}Value", x, 380, field).pin(field, kind, True).pin("self", "settings")
+        call(f"Fill{field}", x, 0, "SetValue", SPINBOX).pin("execute", "exec").pin("then", "exec", True).pin("self", "spinbox").pin("NewValue", "float")
+        wires = [f"{p}>Fill{field}.execute" for p in previous] + [
+            f"Fill{field}Box.{box_name}>Fill{field}.self", f"Fill{field}Settings.Settings>Fill{field}Value.self"]
+        if kind == "int":
+            call(f"Fill{field}Float", x + 200, 380, "Conv_IntToFloat", MATH).pin("InInt", "int").pin("ReturnValue", "float", True)
+            wires += [f"Fill{field}Value.{field}>Fill{field}Float.InInt", f"Fill{field}Float.ReturnValue>Fill{field}.NewValue"]
+        else:
+            wires.append(f"Fill{field}Value.{field}>Fill{field}.NewValue")
+        wire_up(wires)
+        previous = [f"Fill{field}.then"]
+
+        # Save whenever this box's value is committed.
+        y = 800 + i * 400
+        event = f"BndEvt__{box_name}_K2Node_ComponentBoundEvent_{i}_OnSpinBoxValueCommittedEvent__DelegateSignature"
+        Node(f"Changed{field}", "K2Node_ComponentBoundEvent", 0, y,
+             f"DelegatePropertyName=\"OnValueCommitted\"\n   DelegateOwnerClass=Class'\"{SPINBOX}\"'\n   ComponentPropertyName=\"{box_name}\"\n"
+             f"   EventReference=(MemberParent=Package'\"/Script/UMG\"',MemberName=\"OnSpinBoxValueCommittedEvent__DelegateSignature\")\n"
+             f"   CustomFunctionName=\"{event}\"") \
+            .pin("OutputDelegate", "delegate", True).pin("then", "exec", True).pin("InValue", "float", True).pin("CommitMethod", "textcommit", True)
+        var_get(f"Changed{field}Settings", 300, y + 200, "Settings", "settings")
+        settings_member("K2Node_VariableSet", f"Store{field}", 350, y, field).pin("execute", "exec").pin("then", "exec", True) \
+            .pin(field, kind).pin("self", "settings")
+        call(f"Save{field}", 700, y, "SaveGameToSlot", GAMEPLAY).pin("execute", "exec").pin("then", "exec", True).pin("SaveGameObject", "savegame") \
+            .pin("SlotName", "string", False, SETTINGS_SLOT).pin("UserIndex", "int", False, "0").pin("ReturnValue", "bool", True)
+        wires = [f"Changed{field}.then>Store{field}.execute", f"Changed{field}Settings.Settings>Store{field}.self",
+                 f"Store{field}.then>Save{field}.execute", f"Changed{field}Settings.Settings>Save{field}.SaveGameObject"]
+        if kind == "int":
+            call(f"Changed{field}Round", 200, y + 300, "Round", MATH).pin("A", "float").pin("ReturnValue", "int", True)
+            wires += [f"Changed{field}.InValue>Changed{field}Round.A", f"Changed{field}Round.ReturnValue>Store{field}.{field}"]
+        else:
+            wires.append(f"Changed{field}.InValue>Store{field}.{field}")
+        wire_up(wires)
+
+
+def build_debug_readout():
+    """Every 0.25 s, post any change in the host's health plus shield to chat, and whether Fortify and Regen are active."""
+    branch("DbgStart", 0, 0)
+    NODES["DbgStart"].body = 'NodeComment="CONNECT Sequence Then 2 HERE"\n   bCommentBubbleVisible=True\n   bCommentBubblePinned=True'
+    var_get("DbgOn", -250, 150, "DebugReadout", "bool")
+    call("DbgWait", 300, 0, "Delay", SYSTEM).pin("execute", "exec").pin("then", "exec", True).pin("Duration", "float", False, "0.25")
+    call("DbgPlayer", 300, 250, "GetPlayerCharacter", GAMEPLAY).pin("PlayerIndex", "int", False, "0").pin("ReturnValue", "character", True)
+    Node("DbgCast", "K2Node_DynamicCast", 650, 0, f"TargetType=Class'\"{PLAYER}\"'").pin("execute", "exec") \
+        .pin("then", "exec", True).pin("CastFailed", "exec", True).pin("Object", "character") \
+        .pin("AsPlayer Character", "playerchar", True).pin("bSuccess", "bool", True)
+    Node("DbgHealthComp", "K2Node_VariableGet", 650, 300, f"VariableReference=(MemberParent=Class'\"{PLAYER}\"',MemberName=\"HealthComponent\")") \
+        .pin("HealthComponent", "playerhealth", True).pin("self", "playerchar")
+    Node("DbgStatusComp", "K2Node_VariableGet", 650, 450, f"VariableReference=(MemberParent=Class'\"{PLAYER}\"',MemberName=\"StatusEffectsComponent\")") \
+        .pin("StatusEffectsComponent", "status", True).pin("self", "playerchar")
+    call("DbgHealth", 950, 250, "GetHealth", HEALTH).pin("self", "health").pin("ReturnValue", "float", True)
+    call("DbgShield", 950, 350, "GetArmor", "/Script/FSD.HealthComponent").pin("self", "health").pin("ReturnValue", "float", True)
+    call("DbgTotal", 1200, 300, "Add_FloatFloat", MATH).pin("A", "float").pin("B", "float").pin("ReturnValue", "float", True)
+    var_get("DbgLast", 1200, 450, "DebugLastHealth", "float")
+    call("DbgChange", 1450, 300, "Subtract_FloatFloat", MATH).pin("A", "float").pin("B", "float").pin("ReturnValue", "float", True)
+    call("DbgSize", 1650, 400, "Abs", MATH).pin("A", "float").pin("ReturnValue", "float", True)
+    call("DbgBig", 1850, 400, "Greater_FloatFloat", MATH).pin("A", "float").pin("B", "float", False, "0.5").pin("ReturnValue", "bool", True)
+    branch("DbgChanged", 1950, 0)
+    for name, y, effect in (("DbgFortify", 550, "STE_Dice_Fortify"), ("DbgRegen", 650, "STE_Dice_Regen")):
+        call(name, 950, y, "HasActiveEffect", STATUS).pin("self", "status") \
+            .pin("StatusEffect", "effect", False, None, f"/Game/LuckyDice/{effect}.{effect}_C").pin("ReturnValue", "bool", True)
+
+    # Build the chat line one piece at a time.
+    parts = [("Dice debug: change ", "DbgChange.ReturnValue", "float"), (" | HP ", "DbgHealth.ReturnValue", "float"),
+             (" | shield ", "DbgShield.ReturnValue", "float"), (" | Fortify ", "DbgFortify.ReturnValue", "bool"),
+             (" | Regen ", "DbgRegen.ReturnValue", "bool")]
+    text, wires = None, []
+    for i, (label, source, kind) in enumerate(parts):
+        x = 1200 + i * 450
+        convert = "Conv_FloatToString" if kind == "float" else "Conv_BoolToString"
+        source_pin = "InFloat" if kind == "float" else "InBool"
+        call(f"DbgText{i}", x, 800, convert, STRING).pin(source_pin, kind).pin("ReturnValue", "string", True)
+        call(f"DbgLabel{i}", x + 200, 900, "Concat_StrStr", STRING).pin("A", "string", False, label if text is None else None) \
+            .pin("B", "string", False, None if text is None else label).pin("ReturnValue", "string", True)
+        call(f"DbgJoin{i}", x + 200, 1000, "Concat_StrStr", STRING).pin("A", "string").pin("B", "string").pin("ReturnValue", "string", True)
+        wires += [f"{source}>DbgText{i}.{source_pin}", f"DbgLabel{i}.ReturnValue>DbgJoin{i}.A", f"DbgText{i}.ReturnValue>DbgJoin{i}.B"]
+        if text is not None:
+            wires.append(f"{text}>DbgLabel{i}.A")
+        text = f"DbgJoin{i}.ReturnValue"
+    call("DbgState", 2200, 250, "GetFSDGameState", LIBRARY).pin("ReturnValue", "state", True)
+    message("DbgMsg", 2300, 0, "")
+    var_set("DbgRemember", 2650, 0, "DebugLastHealth", "float")
+    wire_up(wires + [
+        "DbgOn.DebugReadout>DbgStart.Condition", "DbgStart.then>DbgWait.execute", "DbgWait.then>DbgCast.execute",
+        "DbgPlayer.ReturnValue>DbgCast.Object", "DbgCast.CastFailed>DbgWait.execute",
+        "DbgCast.AsPlayer Character>DbgHealthComp.self", "DbgCast.AsPlayer Character>DbgStatusComp.self",
+        "DbgHealthComp.HealthComponent>DbgHealth.self", "DbgHealthComp.HealthComponent>DbgShield.self",
+        "DbgHealth.ReturnValue>DbgTotal.A", "DbgShield.ReturnValue>DbgTotal.B", "DbgTotal.ReturnValue>DbgChange.A",
+        "DbgLast.DebugLastHealth>DbgChange.B", "DbgChange.ReturnValue>DbgSize.A", "DbgSize.ReturnValue>DbgBig.A",
+        "DbgCast.then>DbgChanged.execute", "DbgBig.ReturnValue>DbgChanged.Condition",
+        "DbgStatusComp.StatusEffectsComponent>DbgFortify.self", "DbgStatusComp.StatusEffectsComponent>DbgRegen.self",
+        "DbgChanged.then>DbgMsg.execute", "DbgState.ReturnValue>DbgMsg.self", f"{text}>DbgMsg.Msg",
+        "DbgMsg.then>DbgRemember.execute", "DbgChanged.else>DbgRemember.execute", "DbgTotal.ReturnValue>DbgRemember.DebugLastHealth",
+        "DbgRemember.then>DbgWait.execute",
+    ])
+
+
 def build_logic():
     build_choice()
     build_ammo(0)
     build_speed(1400)
     build_nuke(2200)
     build_rapid(4000)
+    build_fortify(4600)
+    build_freeze(5900)
     wire_up([
+        "RapidBranch.else>FortifyBranch.execute", "FortifyBranch.else>FreezeBranch.execute",
         "SetForced.then>AmmoBranch.execute", "SetRandom.then>AmmoBranch.execute", "AmmoBranch.else>SpeedBranch.execute",
         "SpeedBranch.else>NukeBranch.execute", "NukeBranch.else>RapidBranch.execute",
     ])
@@ -671,9 +991,25 @@ def node_text(node):
 
 
 def main():
-    if len(sys.argv) != 3 or sys.argv[2] not in ("--events", "--logic", "--reload-only", "--rapid-chain", "--curve-clear"):
+    if len(sys.argv) != 3 or sys.argv[2] not in ("--events", "--logic", "--reload-only", "--rapid-chain", "--curve-clear", "--fortify-only", "--settings-loader", "--settings-widget", "--debug-readout", "--fortify-heal", "--freeze-only", "--unfreeze-only"):
         sys.exit(__doc__)
-    if sys.argv[2] == "--reload-only":
+    if sys.argv[2] == "--fortify-heal":
+        build_fortify_heal(0, 0)
+        NODES["HealCount"].body += '\n   NodeComment="CONNECT the FORTIFY! Post Game Message HERE"\n   bCommentBubbleVisible=True\n   bCommentBubblePinned=True'
+    elif sys.argv[2] == "--debug-readout":
+        build_debug_readout()
+    elif sys.argv[2] == "--settings-loader":
+        build_settings_loader()
+    elif sys.argv[2] == "--settings-widget":
+        build_settings_widget()
+    elif sys.argv[2] == "--unfreeze-only":
+        build_unfreeze(0, 0)
+        NODES["ThawRegularSave"].body += '\n   NodeComment="CONNECT the Freeze Branch False HERE"\n   bCommentBubbleVisible=True\n   bCommentBubblePinned=True'
+    elif sys.argv[2] == "--freeze-only":
+        build_freeze(0)
+    elif sys.argv[2] == "--fortify-only":
+        build_fortify(0)
+    elif sys.argv[2] == "--reload-only":
         build_reload_event(0)
     elif sys.argv[2] == "--curve-clear":
         clear_saved_curves(0, 0)

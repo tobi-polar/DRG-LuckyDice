@@ -40,6 +40,8 @@ To reference a game asset in the editor, create an empty asset with the same typ
 |---|---|
 | `GameElements/PawnStats/PST_MovementSpeed` | `PawnStat` |
 | `GameElements/PawnStats/PST_MovementSpeedEnvironmentalPenalty` | `PawnStat` |
+| `GameElements/PawnStats/PST_DamageResistance` | `PawnStat` |
+| `GameElements/PawnStats/PST_ShieldRegeneratoinRate` (the game's own spelling) | `PawnStat` |
 | `Enemies/Waves/WaveControllers/EWC_Generic` | Blueprint, parent `EnemyWaveController` |
 
 ## 3. Milestone 1: one dice, one event, solo
@@ -57,7 +59,7 @@ Starting values, to tune by playing:
 | Setting | Value |
 |---|---|
 | Drop chance | 2.5% |
-| Cooldown | 25 s |
+| Cooldown | 45 s |
 | Max dice at once | 1 |
 | Lifetime | 60 s |
 
@@ -91,8 +93,8 @@ In build order, once Rapid Fire is tested. None of these has been built or run i
 
 | Event | Who | How | Still to check |
 |---|---|---|---|
-| Regen | Team | A new status effect using `HealingStatusEffectItem` **[header]** | How much to heal per second, and for how long |
-| Freeze All | Enemies | Loop over enemies like the Nuke, aiming for 10 s, possibly with `EnemyTemperatureStatusEffectItem` **[header]** | How freezing is applied, and whether tough enemies thaw early |
+| Fortify | Team | `STE_Dice_Fortify` for 30 s: `PST_DamageResistance` at 0.5 halves damage taken (it multiplies damage, so 1.5 means 50% more), and `PST_ShieldRegeneratoinRate` at 3 triples shield recharge **[game]**. A Blueprint loop heals 2% of `PlayerHealthComponent.MaxHealth` each second for 30 s with `HealthComponentBase.Heal` **[header]**, because `HealingStatusEffectItem` didn't heal in testing. Never call `GetMaxHealth` from Blueprint: it crashed the game a second after pickup | Damage, shields and a flat 2.5 heal confirmed in a solo test. The percentage heal is untested |
+| Freeze All | Enemies | Built, event 5. Posts FREEZE ALL!, then once a second for 10 s saves `FindEnemiesByClass` to `NukeTargets` (regular, then swarmers), casts each to `FSDPawn` and calls `Freeze(self)` **[header]**. The counter is `FreezeTicksLeft`, and a second roll restarts it. `Freeze` holds enemies frozen for good, so when the count runs out the same loops call `FSDPawn.UnFreeze` **[header]** on every enemy. Generated with `make_roll_events.py --freeze-only` | Works in a solo test: everything freezes for 10 s, then all enemies thaw together. On its own, `Freeze` never thawed them, which is why the unfreeze pass exists. Untested: bosses, dreadnoughts and multiplayer |
 | Jump Boost | Team | Each machine raises `JumpZVelocity` **[engine]** for about 20 s, then restores it | Whether the game's movement uses it, and whether landing causes fall damage |
 | 1-Hit Mining | Team | Each machine raises `PickaxeItem.RockMiningBonus` and `DirtMiningBonus`, or sets `QuadDamageCarving`, for about 30 s **[header]** | What each setting does, and whether it reaches one hit on every material |
 | Team Revive (maybe) | Downed players | Only in the pool while someone is down, using `PlayerCharacter.InstantRevive` or `Server_CheatRevive` **[header]** | Whether these can be called from our code |

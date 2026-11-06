@@ -2,7 +2,7 @@
 
 Enemies have a small chance to drop a golden dice. When a dwarf picks it up, a random buff fires. This is the multiplayer follow-up to the Lucky Dice mod for Deep Rock Galactic: Survivor.
 
-**Status:** in development. Dice drops and the Full Ammo event work in solo; the other events and multiplayer aren't done yet. See [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md).
+**Status:** in development. Dice drops and all six events work in solo: Max Ammo, Speed Boost, Nuke, Rapid Fire, Fortify and Freeze All. Multiplayer testing and more events are still to come. See [docs/BUILD_GUIDE.md](docs/BUILD_GUIDE.md).
 
 ## Planned events
 
@@ -10,6 +10,8 @@ Enemies have a small chance to drop a golden dice. When a dwarf picks it up, a r
 - Full ammo
 - Rapid fire
 - Speed boost
+- Fortify
+- Freeze all
 
 The bad events will be a separate mod, Unlucky Dice. See [docs/UNLUCKY_DICE.md](docs/UNLUCKY_DICE.md).
 
